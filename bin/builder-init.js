@@ -2,29 +2,28 @@
 "use strict";
 
 var path = require("path");
+var async = require("async");
+var prompts = require("../lib/prompts");
+var init = require(path.resolve(__dirname, "../../builder-react-component/init.js"));
 var Templates = require("../lib/templates");
-
-// TODO: REMOVE AND IMPLEMENT PROMPTS
-// https://github.com/FormidableLabs/builder-init/issues/3
-var data = {
-  licenseDate: (new Date()).getFullYear(), // DEFAULT
-  licenseOrg: "ACME Corp.", // REQUIRED
-  packageName: "whiz-bang-component", // REQUIRED
-  packageGitHubOrg: "AcmeCorp", // REQUIRED
-  packageDescription: "Whizzically bang React component", // OPTIONAL ("")
-  componentPath: "whiz-bang-component", // DERIVED: packageName
-  componentName: "WhizBangComponent" // DERIVED: pascal(packageName)
-};
 
 // TODO: REMOVE AND IMPLEMENT INSTALL FROM ARCHETYPE
 // https://github.com/FormidableLabs/builder-init/issues/2
-var templates = new Templates({
-  src: path.join(__dirname, "../../builder-react-component/init"),
-  dest: path.join(process.env.HOME, "Desktop/builder-init-temp"),
-  data: data
-});
+async.auto({
+  "prompts": prompts.bind(null, init),
 
-templates.process(function (err) {
+  "templates": ["prompts", function (cb, results) {
+    var data = results.prompts;
+
+    var templates = new Templates({
+      src: path.resolve(__dirname, "../../builder-react-component/init"),
+      dest: path.resolve(process.env.HOME, "Desktop/builder-init-temp"),
+      data: data
+    });
+
+    templates.process(cb);
+  }]
+}, function (err) {
   // TODO: REAL LOGGING
   // https://github.com/FormidableLabs/builder-init/issues/4
   /*eslint-disable no-console*/
