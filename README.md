@@ -4,7 +4,7 @@
 Builder Initializer
 ===================
 
-A project generator for [builder][] archetypes.
+Initialize projects from [builder][] archetypes.
 
 ## Installation
 
@@ -16,6 +16,7 @@ $ npm install -g builder-init
 
 Although we generally disfavor global installs, this tool _creates_ new projects
 from scratch, so you have to start somewhere...
+
 
 ## Usage
 
@@ -33,7 +34,7 @@ Archetypes provide data for template expansion via an `init.js` file in the
 root of the archetype. The structure of the file is:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: // Questions and responses for the user
   derived: // Other fields derived from the data provided by the user
 };
