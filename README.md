@@ -4,7 +4,7 @@
 Builder Initializer
 ===================
 
-A project generator for [builder][] archetypes.
+Initialize projects from [builder][] archetypes.
 
 ## Installation
 
@@ -17,6 +17,7 @@ $ npm install -g builder-init
 Although we generally disfavor global installs, this tool _creates_ new projects
 from scratch, so you have to start somewhere...
 
+
 ## Usage
 
 ```
@@ -26,6 +27,99 @@ https://github.com/FormidableLabs/builder-init/issues/6
 
 
 ## Templates
+
+### Archetype Data
+
+Archetypes provide data for template expansion via an `init.js` file in the
+root of the archetype. The structure of the file is:
+
+```js
+module.exports = {
+  prompts: // Questions and responses for the user
+  derived: // Other fields derived from the data provided by the user
+};
+```
+
+#### User Prompts
+
+User prompts and responses are ingested using [inquirer][]. The `prompts` field
+of the `init.js` object can either be an _array_ or _object_ of inquirer
+[question objects][inq-questions]. For example:
+
+```js
+module.exports = {
+  prompts: [
+    {
+      name: "name",
+      message: "What is your name?",
+      validate: function (val) {
+        // Validate functions return `true` if valid.
+        // If invalid, return `false` or an error message.
+        return !!val.trim() || "Must enter a name!";
+      }
+    },
+    {
+      name: "quest",
+      message: "What is your quest?"
+    }
+  ]
+};
+```
+
+`builder-init` provides a short-cut of placing the `name` field as the key
+value for a `prompts` object instead of an array:
+
+```js
+module.exports = {
+  prompts: {
+    name: {
+      message: "What is your name?",
+      validate: function (val) { return !!val.trim() || "Must enter a name!"; }
+    },
+    quest: {
+      message: "What is your quest?"
+    }
+  }
+};
+```
+
+**Note - Async**: Inquirer has some nice features, one of which is enabling
+functions like `validate` to become async by using `this.async()`. For
+example:
+
+```js
+name: {
+  message: "What is your name?",
+  validate: function (val) {
+    var done = this.async();
+
+    // Let's wait a second.
+    setTimeout(function () {
+      done(!!val.trim() || "Must enter a name!")
+    }, 1000);
+  }
+}
+```
+
+#### Derived Data
+
+Archetype authors may not wish to expose _all_ data for user input. Thus,
+`builder-init` supports a simple bespoke scheme for taking the existing user
+data and adding derived fields.
+
+The `derived` field of the `init.js` object is an object of functions with
+the signature:
+
+```js
+derived: {
+  // - `data`     All existing data from user prompts.
+  // - `callback` Callback of form `(error, derivedData)`
+  upperName: function (data, cb) {
+    // Uppercase the existing `name` data.
+    cb(null, data.name.toUpperCase());
+  }
+}
+```
 
 ### Application
 
@@ -100,6 +194,8 @@ other static file names provided by the generator.
 
 
 [builder]: https://github.com/FormidableLabs/builder
+[inquirer]: https://github.com/SBoudrias/Inquirer.js
+[inq-questions]: https://github.com/SBoudrias/Inquirer.js#question
 [trav_img]: https://api.travis-ci.org/FormidableLabs/builder-init.svg
 [trav_site]: https://travis-ci.org/FormidableLabs/builder-init
 [cov_img]: https://img.shields.io/coveralls/FormidableLabs/builder-init.svg
