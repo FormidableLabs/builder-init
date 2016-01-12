@@ -47,7 +47,7 @@ of the `init.js` object can either be an _array_ or _object_ of inquirer
 [question objects][inq-questions]. For example:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: [
     {
       name: "name",
@@ -70,7 +70,7 @@ module.exports: {
 value for a `prompts` object instead of an array:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: {
     name: {
       message: "What is your name?",
