@@ -127,6 +127,18 @@ Presently, _all_ files in the `init/` directory of an archetype are parsed as
 templates. We will reconsider this over time if escaping the template syntax
 becomes problematic.
 
+### Templates Directory Ingestion
+
+`builder-init` mostly just walks the `init/` directory of an archetype looking
+for any files with the following features:
+
+* An empty / non-existent `init/` directory is allowed, although nothing will
+  be written out.
+* If an `init/.gitignore` file is found, the files matched in the templates
+  directory will be filtered to ignore any `.gitignore` glob matches. This
+  filtering is done at _load_ time before file name template strings are
+  expanded (in case that matters).
+
 ### Template Parsing
 
 `builder-init` uses Lodash templates, with the following customizations:

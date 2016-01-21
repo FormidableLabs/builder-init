@@ -1,33 +1,21 @@
 "use strict";
 
-var path = require("path");
-var _ = require("lodash");
+// FS Imports: `mock-fs` _must_ come before `fs-extra`
+var mock = require("mock-fs");
+var fs = require("fs-extra");
+
 var Templates = require("../../../../lib/templates");
 
 require("../base.spec");
 
+// Helpers
+// Read file path into a string.
+var read = function (filePath) {
+  // NOTE: Sync methods are OK here because mocked and in-memory.
+  return fs.readFileSync(filePath).toString();
+};
+
 describe("lib/templates", function () {
-  var basicTemplates;
-  var basicRawTmpls;
-
-  before(function (done) {
-    // File I/O: Do a one-time load of the basic fixtures.
-    // Leave `dest`, `data` empty for later hacking.
-    basicTemplates = new Templates({
-      src: path.join(__dirname, "../../fixtures/basic"),
-      dest: path.join(__dirname, "../../fixtures/basic-dest")
-    });
-    basicTemplates.load(function (err, tmpls) {
-      basicRawTmpls = tmpls;
-      done(err);
-    });
-  });
-
-  afterEach(function () {
-    // Reset data for persistent `basicTemplates` object as tests are allowed
-    // to hack this up.
-    basicTemplates.data = {};
-  });
 
   describe("#resolveFilename", function () {
     var resolveFilename;
@@ -128,37 +116,118 @@ describe("lib/templates", function () {
   describe("#process", function () {
     var process;
 
-    describe("empty templates", function () {
+    describe("nonexistent templates directory", function () {
       var instance;
 
       beforeEach(function () {
+        mock();
+
         instance = new Templates({
-          src: path.join(__dirname, "../../fixtures/nonexistent"),
-          dest: path.join(__dirname, "../../fixtures/nonexistent-dest")
+          src: "nonexistent-dir",
+          dest: "nonexistent-dir-dest"
         });
         process = instance.process.bind(instance);
-
-        // Ensure no file i/o and reuse already loaded source templates
-        sandbox.stub(instance, "load").yields(null, []);
-        sandbox.stub(instance, "writeTemplate").yields();
       });
 
-      it("succeeds with no writes", function (done) {
+      it("allows nonexistent directory", function (done) {
         process(function (err) {
           expect(err).to.not.be.ok;
-          expect(instance.writeTemplate).not.to.be.called;
           done();
         });
       });
     });
 
-    describe("basic fixture", function () {
-      beforeEach(function () {
-        process = basicTemplates.process.bind(basicTemplates);
+    describe("empty templates directory", function () {
+      var instance;
 
-        // Ensure no file i/o and reuse already loaded source templates
-        sandbox.stub(basicTemplates, "load").yields(null, basicRawTmpls);
-        sandbox.stub(basicTemplates, "writeTemplate").yields(null);
+      beforeEach(function () {
+        mock({
+          "empty-dir": {
+            "another-empty-dir": {}
+          }
+        });
+
+        instance = new Templates({
+          src: "empty-dir",
+          dest: "empty-dir-dest"
+        });
+        process = instance.process.bind(instance);
+      });
+
+      it("allows empty directory", function (done) {
+        process(function (err) {
+          expect(err).to.not.be.ok;
+          done();
+        });
+      });
+    });
+
+    describe("gitignore files", function () {
+      var instance;
+
+      beforeEach(function () {
+        mock({
+          "src": {
+            ".gitignore": "coverage",
+            "COPY.txt": "Should be copied",
+            coverage: {
+              "NO_COPY.txt": "Should not be copied"
+            }
+          }
+        });
+
+        instance = new Templates({
+          src: "src",
+          dest: "dest"
+        });
+        process = instance.process.bind(instance);
+      });
+
+      it("ignores .gitignore'd files", function (done) {
+        process(function (err) {
+          if (err) { return done(err); }
+
+          expect(read("dest/.gitignore")).to.equal("coverage");
+          expect(read("dest/COPY.txt")).to.equal("Should be copied");
+          expect(fs.existsSync("dest/coverage")).to.be.false;
+          expect(fs.existsSync("dest/coverage/NO_COPY.txt")).to.be.false;
+
+          done();
+        });
+      });
+    });
+
+    describe("basic templates", function () {
+      var basicTemplates;
+
+      beforeEach(function () {
+        // Mock filesystem
+        mock({
+          basic: {
+            src: {
+              "index.js": "var <%= codeName %> = require(\"./<%= code %>.js\");\n\n" +
+                "module.exports[<%= codeName %>] = <%= codeName %>;\n",
+              "{{code}}.js": "module.exports = {\n" +
+                "  greeting: \"Hello <%= username %>\"\n" +
+                "};"
+            },
+            "README.md": "# Basic Tests\n\n" +
+              "These files are to test out basic interpolation for file name and contents.\n",
+            "{{text}}.md": "<%= username %>'s very own file\n"
+          }
+        });
+
+        // Leave `data` empty for later hacking.
+        basicTemplates = new Templates({
+          src: "basic",
+          dest: "basic-dest"
+        });
+
+        process = basicTemplates.process.bind(basicTemplates);
+      });
+
+      afterEach(function () {
+        mock.restore();
       });
 
       it("errors on missing data value", function (done) {
@@ -209,42 +278,15 @@ describe("lib/templates", function () {
           username: "Billy"
         };
 
-        process(function (err, procTmpls) {
-          expect(err).to.not.be.ok;
+        process(function (err) {
+          if (err) { return done(err); }
 
-          // Wrote 4 files (stubbed).
-          expect(basicTemplates.writeTemplate)
-            .to.be.called.and
-            .to.have.callCount(4);
-
-          // Check the resultant templates.
-          expect(procTmpls).to.have.length(4);
-
-          var procObj = _(procTmpls)
-            .map(function (val) { return [path.relative(__dirname, val.dest), val.content]; })
-            .object()
-            .value();
-
-          var procPaths = _(procObj).keys().sortBy(_.identity).value();
-          expect(procPaths).to.deep.equal([
-            "../../fixtures/basic-dest/README.md",
-            "../../fixtures/basic-dest/src/index.js",
-            "../../fixtures/basic-dest/src/the-codez.js",
-            "../../fixtures/basic-dest/the-textz.md"
-          ]);
-
-          expect(procObj).to.have.property("../../fixtures/basic-dest/README.md").and
-            .to.contain("Basic Tests");
-
-          expect(procObj).to.have.property("../../fixtures/basic-dest/the-textz.md").and
-            .to.contain("Billy");
-
-          expect(procObj).to.have.property("../../fixtures/basic-dest/src/index.js").and
+          expect(read("basic-dest/README.md")).to.contain("Basic Tests");
+          expect(read("basic-dest/the-textz.md")).to.contain("Billy");
+          expect(read("basic-dest/src/index.js"))
             .to.contain("TheCodez").and
             .to.contain("the-codez");
-
-          expect(procObj).to.have.property("../../fixtures/basic-dest/src/the-codez.js").and
-            .to.contain("Billy");
+          expect(read("basic-dest/src/the-codez.js")).to.contain("Billy");
 
           done();
         });
