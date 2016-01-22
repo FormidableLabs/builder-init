@@ -6,6 +6,7 @@ Builder Initializer
 
 Initialize projects from [builder][] archetypes.
 
+
 ## Installation
 
 Install this package as a global dependency.
@@ -21,9 +22,7 @@ from scratch, so you have to start somewhere...
 ## Usage
 
 `builder-init` can initialize any package that `npm` can
-[install](https://docs.npmjs.com/cli/install). Internally, `builder-init`
-utilizes [`npm pack`](https://docs.npmjs.com/cli/pack) to download (but not
-install) an archetype package from npm, GitHub, file, etc.
+[install](https://docs.npmjs.com/cli/install), including npm, GitHub, file, etc.
 
 Invocation:
 
@@ -49,6 +48,14 @@ $ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.g
 $ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git#v0.1.3
 $ builder-init ../builder-react-component
 ```
+
+Internally, `builder-init` utilizes [`npm pack`](https://docs.npmjs.com/cli/pack)
+to download (but not install) an archetype package from npm, GitHub, file, etc.
+There is a slight performance penalty for things like local files which have to
+be compressed and then expanded again, but we gain the very nice benefit of
+allowing `builder-init` to install anything `npm` can in exactly the same
+manner that `npm` does.
+
 
 ## Archetype Templates
 
