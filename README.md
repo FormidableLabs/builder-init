@@ -207,7 +207,7 @@ test
 .travis*
 ```
 
-we would end up following template files excluded by natural `npm` processes:
+natural `npm` processes would exclude all of the following template files:
 
 ```
 init/.editorconfig

@@ -24,6 +24,7 @@ describe("bin/builder-init", function () {
     it("errors on .npmignore collision"); // TODO
     it("errors on .gitignore collision"); // TODO
     it("expands .gitignore"); // TODO
+    it("expands .gitignore and excludes ignored files"); // TODO
     it("expands .npmignore"); // TODO
     it("expands .npmignore and .gitignore"); // TODO
 
