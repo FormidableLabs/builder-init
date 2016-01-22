@@ -13,6 +13,7 @@ describe("lib/task", function () {
       sandbox.stub(Task.prototype, "help").yields();
       var task = new Task({ argv: ["node", "builder-init", "-h"] });
       task.execute(function () {
+        expect(task.isInit()).to.be.false;
         expect(task.help).to.be.calledOnce;
         done();
       });
@@ -22,6 +23,7 @@ describe("lib/task", function () {
       sandbox.stub(Task.prototype, "version").yields();
       var task = new Task({ argv: ["node", "builder-init", "--version"] });
       task.execute(function () {
+        expect(task.isInit()).to.be.false;
         expect(task.version).to.be.calledOnce;
         done();
       });
@@ -31,6 +33,7 @@ describe("lib/task", function () {
       sandbox.stub(Task.prototype, "init").yields();
       var task = new Task({ argv: ["node", "builder-init", "foo-archetype"] });
       task.execute(function () {
+        expect(task.isInit()).to.be.true;
         expect(task.init).to.be.calledOnce;
         done();
       });
