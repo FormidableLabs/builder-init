@@ -4,6 +4,14 @@
 var Task = require("../lib/task");
 var task = new Task();
 task.execute(function (err) {
+  // TODO: REAL LOGGING
+  // https://github.com/FormidableLabs/builder-init/issues/4
+  /*eslint-disable no-console*/
+  if (err) {
+    console.error(err);
+  }
+  /*eslint-enable no-console*/
+
   /*eslint-disable no-process-exit*/
   process.exit(err ? err.code || 1 : 0);
 });
