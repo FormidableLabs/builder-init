@@ -4,7 +4,7 @@
 Builder Initializer
 ===================
 
-A project generator for [builder][] archetypes.
+Initialize projects from [builder][] archetypes.
 
 ## Installation
 
@@ -16,6 +16,7 @@ $ npm install -g builder-init
 
 Although we generally disfavor global installs, this tool _creates_ new projects
 from scratch, so you have to start somewhere...
+
 
 ## Usage
 
@@ -65,7 +66,7 @@ Archetypes provide data for template expansion via an `init.js` file in the
 root of the archetype. The structure of the file is:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: // Questions and responses for the user
   derived: // Other fields derived from the data provided by the user
 };
@@ -78,7 +79,7 @@ of the `init.js` object can either be an _array_ or _object_ of inquirer
 [question objects][inq-questions]. For example:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: [
     {
       name: "name",
@@ -101,7 +102,7 @@ module.exports: {
 value for a `prompts` object instead of an array:
 
 ```js
-module.exports: {
+module.exports = {
   prompts: {
     name: {
       message: "What is your name?",
@@ -152,6 +153,22 @@ derived: {
 }
 ```
 
+### Templates Directory Ingestion
+
+`builder-init` mostly just walks the `init/` directory of an archetype looking
+for any files with the following features:
+
+* An empty / non-existent `init/` directory is allowed, although nothing will
+  be written out.
+* If an `init/.gitignore` file is found, the files matched in the templates
+  directory will be filtered to ignore any `.gitignore` glob matches. This
+  filtering is done at _load_ time before file name template strings are
+  expanded (in case that matters).
+
+Presently, _all_ files in the `init/` directory of an archetype are parsed as
+templates. We will reconsider this over time if escaping the template syntax
+becomes problematic.
+
 ### Template Parsing
 
 `builder-init` uses Lodash templates, with the following customizations:
@@ -200,10 +217,6 @@ In addition file _content_, `builder-init` also interpolates and parses file
 _names_ using an alternate template parsing scheme, inspired by Mustache
 templates. (The rationale for this is that ERB syntax is not file-system
 compliant on all OSes).
-
-**Note**: Presently, _all_ files in the `init/` directory of an archetype are
-parsed as templates. We will reconsider this over time if escaping the template
-syntax becomes problematic.
 
 So, if we have data: `packageName: "whiz-bang-component"` and want to create
 a file-system path:
