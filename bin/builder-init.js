@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 "use strict";
 
-var path = require("path");
-var async = require("async");
 var Task = require("../lib/task");
 var task = new Task();
 task.execute(function (err) {
@@ -10,15 +8,12 @@ task.execute(function (err) {
   process.exit(err ? err.code || 1 : 0);
 });
 
-
-
-
+// var path = require("path");
+// var async = require("async");
 
 // var prompts = require("../lib/prompts");
 // var init = require(path.resolve(__dirname, "../../builder-react-component/init.js"));
 // var Templates = require("../lib/templates");
-
-
 
 // // TODO: REMOVE AND IMPLEMENT INSTALL FROM ARCHETYPE
 // // https://github.com/FormidableLabs/builder-init/issues/2
