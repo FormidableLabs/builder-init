@@ -178,6 +178,72 @@ derived: {
 }
 ```
 
+### Special Data and Scenarios
+
+#### `.npmignore`, `.gitignore`
+
+**The Problem**
+
+The `.npmignore` and `.gitignore` files in an `init/` templates directory are
+critical to the correct publishing / git lifecyle of a created project. However,
+publishing `init/` to npm as part of publishing the archetype and even
+initializing off of a local file path via `npm pack` does not work well with
+the basic layout of:
+
+```
+init/
+  .gitignore
+  .npmignore
+```
+
+The problem is that the `.npmignore` affects and filters out files that will
+be available for template use in an undesirable fashion. For example, in
+`builder-react-component` which has an `.npmignore` which includes:
+
+```
+demo
+test
+.editor*
+.travis*
+```
+
+we would end up following template files excluded by natural `npm` processes:
+
+```
+init/.editorconfig
+init/.travis.yml
+init/test/client/main.js
+init/test/client/spec/components/{{componentPath}}.spec.jsx
+init/test/client/test.html
+init/demo/app.jsx
+init/demo/index.html
+```
+
+Adding even more complexity to the situation is the fact that if `npm` doesn't
+find a `.npmignore` on publishing or `npm pack` it will rename `.gitignore` to
+`.npmignore`.
+
+**The Solution**
+
+To address this, we have special `derived` values built in by default to
+`builder-init`. You do _not_ need to add them to your `init.js`:
+
+* `{{gitignore}}` -> `.gitignore`
+* `{{npmignore}}` -> `.npmignore`
+
+In your archetype `init` directory you should add either / both of these files
+with the following names instead of their real ones:
+
+```
+init/
+  {{gitignore}}
+  {{npmignore}}
+```
+
+As a side note for your git usage, this now means that `init/.gitignore` doesn't
+control the templates anymore and your archetype's root `.gitignore` must
+appropriately ignore files in `init/` for git commits.
+
 ### Templates Directory Ingestion
 
 `builder-init` mostly just walks the `init/` directory of an archetype looking
