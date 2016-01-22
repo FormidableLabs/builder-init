@@ -19,13 +19,45 @@ from scratch, so you have to start somewhere...
 
 ## Usage
 
-```
-TODO: Add usage, documentation.
-https://github.com/FormidableLabs/builder-init/issues/6
+`builder-init` can initialize any package that `npm` can
+[install](https://docs.npmjs.com/cli/install). Internally, `builder-init`
+utilizes [`npm pack`](https://docs.npmjs.com/cli/pack) to download (but not
+install) an archetype package from npm, GitHub, file, etc.
+
+Invocation:
+
+```sh
+$ builder-init [flags] <archetype>
 ```
 
+Flags:
 
-## Templates
+```
+  --help
+  --version
+```
+
+Examples:
+
+```sh
+$ builder-init builder-react-component
+$ builder-init builder-react-component@0.1.3
+$ builder-init FormidableLabs/builder-react-component
+$ builder-init FormidableLabs/builder-react-component#v0.1.3
+$ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git
+$ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git#v0.1.3
+$ builder-init ../builder-react-component
+```
+
+## Archetype Templates
+
+Authoring a templates for an archetype consists of adding the following to your
+archetype source:
+
+* **`init.js`**: A control file for user prompts and data. See, e.g.,
+  [`builder-react-component/blob/master/init.js`](https://github.com/FormidableLabs/builder-react-component/blob/master/init.js)
+* **`init/`**: A directory of templates to inflate during initialization. See, e.g.,
+  [`builder-react-component/blob/master/init/`](https://github.com/FormidableLabs/builder-react-component/blob/master/init)
 
 ### Archetype Data
 
@@ -120,12 +152,6 @@ derived: {
 }
 ```
 
-### Application
-
-Presently, _all_ files in the `init/` directory of an archetype are parsed as
-templates. We will reconsider this over time if escaping the template syntax
-becomes problematic.
-
 ### Template Parsing
 
 `builder-init` uses Lodash templates, with the following customizations:
@@ -174,6 +200,10 @@ In addition file _content_, `builder-init` also interpolates and parses file
 _names_ using an alternate template parsing scheme, inspired by Mustache
 templates. (The rationale for this is that ERB syntax is not file-system
 compliant on all OSes).
+
+**Note**: Presently, _all_ files in the `init/` directory of an archetype are
+parsed as templates. We will reconsider this over time if escaping the template
+syntax becomes problematic.
 
 So, if we have data: `packageName: "whiz-bang-component"` and want to create
 a file-system path:
