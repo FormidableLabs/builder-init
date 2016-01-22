@@ -1,53 +1,48 @@
 #!/usr/bin/env node
 "use strict";
 
+var path = require("path");
+var async = require("async");
+
+var prompts = require("../lib/prompts");
+var Templates = require("../lib/templates");
 var Task = require("../lib/task");
 var task = new Task();
-task.execute(function (err) {
+
+// Our "finish up" helper
+var finish = function (err) {
   // TODO: REAL LOGGING
   // https://github.com/FormidableLabs/builder-init/issues/4
-  /*eslint-disable no-console*/
-  if (err) {
-    console.error(err);
-  }
-  /*eslint-enable no-console*/
+  if (err) { console.error(err); } // eslint-disable-line no-console
 
-  /*eslint-disable no-process-exit*/
-  process.exit(err ? err.code || 1 : 0);
-});
+  process.exit(err ? err.code || 1 : 0); // eslint-disable-line no-process-exit
+};
 
-// var path = require("path");
-// var async = require("async");
+// Start the init fun.
+if (task.isInit()) {
+  // Actual initialization.
+  async.auto({
+    download: task.execute.bind(task),
 
-// var prompts = require("../lib/prompts");
-// var init = require(path.resolve(__dirname, "../../builder-react-component/init.js"));
-// var Templates = require("../lib/templates");
+    prompts: ["download", function (cb, results) {
+      prompts(results.download.init, cb);
+    }],
 
-// // TODO: REMOVE AND IMPLEMENT INSTALL FROM ARCHETYPE
-// // https://github.com/FormidableLabs/builder-init/issues/2
-// async.auto({
-//   "prompts": prompts.bind(null, init),
+    templates: ["prompts", function (cb, results) {
+      var templates = new Templates({
+        src: results.download.src,
+        // TODO HERE: CHOOSE A DESTINATION
+        // - Default to `cwd() + package name`.
+        // - ... or something else???
+        dest: path.resolve(process.env.HOME, "Desktop/builder-init-temp"),
+        data: results.prompts
+      });
 
-//   "templates": ["prompts", function (cb, results) {
-//     var data = results.prompts;
+      templates.process(cb);
+    }]
+  }, finish);
 
-//     var templates = new Templates({
-//       src: path.resolve(__dirname, "../../builder-react-component/init"),
-//       dest: path.resolve(process.env.HOME, "Desktop/builder-init-temp"),
-//       data: data
-//     });
-
-//     templates.process(cb);
-//   }]
-// }, function (err) {
-//   // TODO: REAL LOGGING
-//   // https://github.com/FormidableLabs/builder-init/issues/4
-//   /*eslint-disable no-console*/
-//   if (err) {
-//     console.error(err);
-//   }
-//   /*eslint-enable no-console*/
-
-//   /*eslint-disable no-process-exit*/
-//   process.exit(err ? err.code || 1 : 0);
-// });
+} else {
+  // Help, version, etc. - just call straight up.
+  task.execute(finish);
+}

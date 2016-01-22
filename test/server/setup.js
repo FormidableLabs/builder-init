@@ -4,7 +4,7 @@
  * Test setup for server-side tests.
  */
 // Start the mock import _first_ to inject mocks into everything.
-var mock = require("mock-fs");
+require("mock-fs");
 
 var chai = require("chai");
 var sinonChai = require("sinon-chai");
