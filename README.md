@@ -46,7 +46,7 @@ $ builder-init FormidableLabs/builder-react-component
 $ builder-init FormidableLabs/builder-react-component#v0.1.3
 $ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git
 $ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git#v0.1.3
-$ builder-init ../builder-react-component
+$ builder-init /FULL/PATH/TO/builder-react-component
 ```
 
 Internally, `builder-init` utilizes [`npm pack`](https://docs.npmjs.com/cli/pack)
@@ -55,6 +55,24 @@ There is a slight performance penalty for things like local files which have to
 be compressed and then expanded again, but we gain the very nice benefit of
 allowing `builder-init` to install anything `npm` can in exactly the same
 manner that `npm` does.
+
+### Installing from a Relative Path on the Local Filesystem
+
+One exception to the "install like `npm` does" rule is installation from the
+**local filesystem**. Internally, `builder-init` creates a temporary directory
+to expand the download from `npm pack` and executes the process in that
+directory, meaning that relative paths to a target archetype are now incorrect.
+
+Accordingly, if you _want_ to simulate a relative path install, you can try
+something like:
+
+```sh
+# Mac / Linunx
+$ builder-init "${PWD}/../builder-react-component"
+
+# Windows
+$ builder-init "%cd%\..\builder-react-component"
+```
 
 
 ## Archetype Templates
