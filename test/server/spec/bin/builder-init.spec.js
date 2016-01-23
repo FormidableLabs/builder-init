@@ -13,10 +13,10 @@ describe("bin/builder-init", function () {
 
   describe("base cases", function () {
 
-    it("handles no init.js"); // TODO
     it("errors on missing init/ and init.js"); // TODO
     it("errors on missing init/ and no init.js"); // TODO
     it("errors on init/ not a directory"); // TODO
+    it("allows no init.js and empty init/"); // TODO
 
   });
 
@@ -36,4 +36,11 @@ describe("bin/builder-init", function () {
     it("errors when destination already exists"); // TODO
 
   });
+
+  describe("basic", function () {
+
+    it("initializes a simple project"); // TODO
+
+  });
+
 });

@@ -5,8 +5,8 @@ var async = require("async");
 var Prompt = require("inquirer/lib/prompts/input");
 var prompts = require("../../../../lib/prompts");
 
-require("../base.spec");
-
+var base = require("../base.spec");
+var addDefaults = base.addPromptDefaults.bind(base);
 
 // Helpers
 /**
@@ -54,26 +54,9 @@ var promptsWithData = function (init, setupFn, assertFn) {
 describe("lib/prompts", function () {
   var runStub;
 
-  var DEFAULTS;
-  var addDefaults = function (data) {
-    return _.extend({}, DEFAULTS, data);
-  };
-
-  before(function (done) {
-    var derived = _.mapValues(prompts._DEFAULTS.derived, function (fn) {
-      return fn.bind(null, {});
-    });
-
-    // Async resolve defaults for all tests here.
-    async.auto(derived, function (err, results) {
-      DEFAULTS = results;
-      done(err);
-    });
-  });
-
   beforeEach(function () {
     // Intercept all real stdin/stdout.
-    runStub = sandbox.stub(Prompt.prototype, "run");
+    runStub = base.sandbox.stub(Prompt.prototype, "run");
   });
 
   it("errors on invalid init object", function (done) {

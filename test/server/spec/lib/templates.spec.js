@@ -168,7 +168,7 @@ describe("lib/templates", function () {
       beforeEach(function () {
         mock({
           "src": {
-            ".gitignore": "coverage",
+            ".gitignore": "coverage", // TODO: SWITCH TO {{gitignore}}
             "COPY.txt": "Should be copied",
             coverage: {
               "NO_COPY.txt": "Should not be copied"

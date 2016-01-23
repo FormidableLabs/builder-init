@@ -3,14 +3,14 @@
 var Task = require("../../../../lib/task");
 var pkg = require("../../../../package.json");
 
-require("../base.spec");
+var base = require("../base.spec");
 
 describe("lib/task", function () {
 
   describe("#execute", function () {
 
     it("selects help", function (done) {
-      sandbox.stub(Task.prototype, "help").yields();
+      base.sandbox.stub(Task.prototype, "help").yields();
       var task = new Task({ argv: ["node", "builder-init", "-h"] });
       task.execute(function () {
         expect(task.isInit()).to.be.false;
@@ -20,7 +20,7 @@ describe("lib/task", function () {
     });
 
     it("selects version", function (done) {
-      sandbox.stub(Task.prototype, "version").yields();
+      base.sandbox.stub(Task.prototype, "version").yields();
       var task = new Task({ argv: ["node", "builder-init", "--version"] });
       task.execute(function () {
         expect(task.isInit()).to.be.false;
@@ -30,7 +30,7 @@ describe("lib/task", function () {
     });
 
     it("selects init", function (done) {
-      sandbox.stub(Task.prototype, "init").yields();
+      base.sandbox.stub(Task.prototype, "init").yields();
       var task = new Task({ argv: ["node", "builder-init", "foo-archetype"] });
       task.execute(function () {
         expect(task.isInit()).to.be.true;
@@ -44,8 +44,8 @@ describe("lib/task", function () {
   describe("#help", function () {
 
     it("displays help", function (done) {
-      sandbox.stub(process.stdout, "write");
-      sandbox.spy(Task.prototype, "help");
+      base.sandbox.stub(process.stdout, "write");
+      base.sandbox.spy(Task.prototype, "help");
       var task = new Task({ argv: ["node", "builder-init", "--help"] });
       task.execute(function (err) {
         if (err) { return done(err); }
@@ -63,8 +63,8 @@ describe("lib/task", function () {
   describe("#version", function () {
 
     it("displays version", function (done) {
-      sandbox.stub(process.stdout, "write");
-      sandbox.spy(Task.prototype, "version");
+      base.sandbox.stub(process.stdout, "write");
+      base.sandbox.spy(Task.prototype, "version");
       var task = new Task({ argv: ["node", "builder-init", "-v"] });
       task.execute(function (err) {
         if (err) { return done(err); }
@@ -82,7 +82,7 @@ describe("lib/task", function () {
   describe("#init", function () {
 
     it("displys help if no archetype specified", function (done) {
-      sandbox.stub(Task.prototype, "help").yields();
+      base.sandbox.stub(Task.prototype, "help").yields();
       var task = new Task({ argv: ["node", "builder-init"] });
       task.execute(function () {
         expect(task.isInit()).to.be.false;
