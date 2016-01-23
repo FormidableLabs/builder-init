@@ -4,7 +4,6 @@ var _ = require("lodash");
 var async = require("async");
 var Prompt = require("inquirer/lib/prompts/input");
 var prompts = require("../../../../lib/prompts");
-
 var base = require("../base.spec");
 var addDefaults = base.addPromptDefaults.bind(base);
 

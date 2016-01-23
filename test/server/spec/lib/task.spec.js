@@ -2,7 +2,6 @@
 
 var Task = require("../../../../lib/task");
 var pkg = require("../../../../package.json");
-
 var base = require("../base.spec");
 
 describe("lib/task", function () {

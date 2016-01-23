@@ -1,19 +1,8 @@
 "use strict";
 
-// FS Imports: `mock-fs` _must_ come before `fs-extra`
 var mock = require("mock-fs");
-var fs = require("fs-extra");
-
 var Templates = require("../../../../lib/templates");
-
 var base = require("../base.spec");
-
-// Helpers
-// Read file path into a string.
-var read = function (filePath) {
-  // NOTE: Sync methods are OK here because mocked and in-memory.
-  return fs.readFileSync(filePath).toString();
-};
 
 describe("lib/templates", function () {
 
@@ -188,10 +177,10 @@ describe("lib/templates", function () {
         process(function (err) {
           if (err) { return done(err); }
 
-          expect(read("dest/.gitignore")).to.equal("coverage");
-          expect(read("dest/COPY.txt")).to.equal("Should be copied");
-          expect(fs.existsSync("dest/coverage")).to.be.false;
-          expect(fs.existsSync("dest/coverage/NO_COPY.txt")).to.be.false;
+          expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
+          expect(base.fileRead("dest/COPY.txt")).to.equal("Should be copied");
+          expect(base.fileExists("dest/coverage")).to.be.false;
+          expect(base.fileExists("dest/coverage/NO_COPY.txt")).to.be.false;
 
           done();
         });
@@ -224,10 +213,10 @@ describe("lib/templates", function () {
         process(function (err) {
           if (err) { return done(err); }
 
-          expect(read("dest/.gitignore")).to.equal("coverage");
-          expect(read("dest/COPY.txt")).to.equal("Should be copied");
-          expect(fs.existsSync("dest/coverage")).to.be.false;
-          expect(fs.existsSync("dest/coverage/NO_COPY.txt")).to.be.false;
+          expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
+          expect(base.fileRead("dest/COPY.txt")).to.equal("Should be copied");
+          expect(base.fileExists("dest/coverage")).to.be.false;
+          expect(base.fileExists("dest/coverage/NO_COPY.txt")).to.be.false;
 
           done();
         });
@@ -318,12 +307,12 @@ describe("lib/templates", function () {
         process(function (err) {
           if (err) { return done(err); }
 
-          expect(read("basic-dest/README.md")).to.contain("Basic Tests");
-          expect(read("basic-dest/the-textz.md")).to.contain("Billy");
-          expect(read("basic-dest/src/index.js"))
+          expect(base.fileRead("basic-dest/README.md")).to.contain("Basic Tests");
+          expect(base.fileRead("basic-dest/the-textz.md")).to.contain("Billy");
+          expect(base.fileRead("basic-dest/src/index.js"))
             .to.contain("TheCodez").and
             .to.contain("the-codez");
-          expect(read("basic-dest/src/the-codez.js")).to.contain("Billy");
+          expect(base.fileRead("basic-dest/src/the-codez.js")).to.contain("Billy");
 
           done();
         });

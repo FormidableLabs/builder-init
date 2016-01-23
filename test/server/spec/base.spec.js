@@ -9,16 +9,29 @@
  * be run in a separate process from other types of tests.
  */
 var _ = require("lodash");
+var fs = require("fs-extra");
 var async = require("async");
 var sinon = require("sinon");
 var prompts = require("../../../lib/prompts");
 
 // Export some helpers.
 var base = module.exports;
+
 base.sandbox = null;
+
+// Prompts
 base.PROMPT_DEFAULTS = null;
 base.addPromptDefaults = function (data) {
   return _.extend({}, base.PROMPT_DEFAULTS, data);
+};
+
+// File stuff.
+// NOTE: Sync methods are OK here because mocked and in-memory.
+base.fileRead = function (filePath) {
+  return fs.readFileSync(filePath).toString();
+};
+base.fileExists = function (filePath) {
+  return fs.existsSync(filePath);
 };
 
 before(function (done) {
