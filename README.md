@@ -92,8 +92,9 @@ root of the archetype. The structure of the file is:
 
 ```js
 module.exports = {
-  prompts: // Questions and responses for the user
-  derived: // Other fields derived from the data provided by the user
+  destination:  // A special prompt for output destination directory.
+  prompts:      // Questions and responses for the user
+  derived:      // Other fields derived from the data provided by the user
 };
 ```
 
@@ -105,6 +106,20 @@ of the `init.js` object can either be an _array_ or _object_ of inquirer
 
 ```js
 module.exports = {
+  // Destination directory to write files to.
+  //
+  // This field is deep merged and added _last_ to the prompts so that archetype
+  // authors can add `default` values or override the default message. You
+  // could further override the `validate` function, but we suggest using the
+  // existing default as it checks the directory does not already exist (which
+  // is enforced later in code).
+  destination: {
+    default: function (data) {
+      // Use the early `name` prompt as the default value for our dest directory
+      return data.name;
+    }
+  },
+
   prompts: [
     {
       name: "name",

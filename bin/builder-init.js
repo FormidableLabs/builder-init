@@ -29,12 +29,13 @@ if (task.isInit()) {
     }],
 
     templates: ["prompts", function (cb, results) {
+      if (!results.prompts.destination) {
+        return cb(new Error("Destination field missing from prompts"));
+      }
+
       var templates = new Templates({
         src: results.download.src,
-        // TODO HERE: CHOOSE A DESTINATION
-        // - Default to `cwd() + package name`.
-        // - ... or something else???
-        dest: path.resolve(process.env.HOME, "Desktop/builder-init-temp"),
+        dest: path.resolve(results.prompts.destination),
         data: results.prompts
       });
 
