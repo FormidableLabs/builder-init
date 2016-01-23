@@ -9,17 +9,13 @@ var Templates = require("../lib/templates");
 var Task = require("../lib/task");
 var task = new Task();
 
-// Our "finish up" helper
-var finish = function (err) {
-  // TODO: REAL LOGGING
-  // https://github.com/FormidableLabs/builder-init/issues/4
-  if (err) { console.error(err); } // eslint-disable-line no-console
+// Script runner
+var run = module.exports = function (callback) {
+  // Help, version, etc. - just call straight up.
+  if (!task.isInit()) {
+    return task.execute(callback);
+  }
 
-  process.exit(err ? err.code || 1 : 0); // eslint-disable-line no-process-exit
-};
-
-// Start the init fun.
-if (task.isInit()) {
   // Actual initialization.
   async.auto({
     download: task.execute.bind(task),
@@ -41,9 +37,15 @@ if (task.isInit()) {
 
       templates.process(cb);
     }]
-  }, finish);
+  }, callback);
+};
 
-} else {
-  // Help, version, etc. - just call straight up.
-  task.execute(finish);
+if (require.main === module) {
+  run(function (err) {
+    // TODO: REAL LOGGING
+    // https://github.com/FormidableLabs/builder-init/issues/4
+    if (err) { console.error(err); } // eslint-disable-line no-console
+
+    process.exit(err ? err.code || 1 : 0); // eslint-disable-line no-process-exit
+  });
 }
