@@ -2,10 +2,11 @@
 
 var _ = require("lodash");
 var async = require("async");
-var prompts = require("../../../../lib/prompts");
 var Prompt = require("inquirer/lib/prompts/input");
+var prompts = require("../../../../lib/prompts");
 
 require("../base.spec");
+
 
 // Helpers
 /**
@@ -49,8 +50,26 @@ var promptsWithData = function (init, setupFn, assertFn) {
   };
 };
 
+
 describe("lib/prompts", function () {
   var runStub;
+
+  var DEFAULTS;
+  var addDefaults = function (data) {
+    return _.extend({}, DEFAULTS, data);
+  };
+
+  before(function (done) {
+    var derived = _.mapValues(prompts._DEFAULTS.derived, function (fn) {
+      return fn.bind(null, {});
+    });
+
+    // Async resolve defaults for all tests here.
+    async.auto(derived, function (err, results) {
+      DEFAULTS = results;
+      done(err);
+    });
+  });
 
   beforeEach(function () {
     // Intercept all real stdin/stdout.
@@ -81,13 +100,13 @@ describe("lib/prompts", function () {
   it("handles base cases", function (done) {
     async.series([
       promptsWithData({}, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       }),
       promptsWithData({ prompts: [] }, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       }),
       promptsWithData({ prompts: {}, derived: {} }, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       })
     ], done);
   });
@@ -100,14 +119,14 @@ describe("lib/prompts", function () {
           bar: function (data, cb) { cb(null, "bar"); }
         }
       }, function (data) {
-        expect(data).to.deep.equal({ foo: "foo", bar: "bar" });
+        expect(data).to.deep.equal(addDefaults({ foo: "foo", bar: "bar" }));
       }),
       promptsWithData({
         derived: {
           deferred: function (data, cb) { _.defer(cb.bind(null, null, "foo")); }
         }
       }, function (data) {
-        expect(data).to.deep.equal({ deferred: "foo" });
+        expect(data).to.deep.equal(addDefaults({ deferred: "foo" }));
       })
     ], done);
   });
@@ -155,7 +174,7 @@ describe("lib/prompts", function () {
           .reset()
           .onCall(0).yields("2016");
       }, function (data) {
-        expect(data).to.deep.equal({ licenseDate: "2016" });
+        expect(data).to.deep.equal(addDefaults({ licenseDate: "2016" }));
       }),
 
       promptsWithData({
@@ -169,10 +188,10 @@ describe("lib/prompts", function () {
           .onCall(0).yields("whiz-bang")
           .onCall(1).yields("The Whiz Bang");
       }, function (data) {
-        expect(data).to.deep.equal({
+        expect(data).to.deep.equal(addDefaults({
           packageName: "whiz-bang",
           packageDescription: "The Whiz Bang"
-        });
+        }));
       })
     ], done);
   });
@@ -193,11 +212,11 @@ describe("lib/prompts", function () {
         .reset()
         .onCall(0).yields("2016");
     }, function (data) {
-      expect(data).to.deep.equal({
+      expect(data).to.deep.equal(addDefaults({
         year: "2016",
         reverseYear: "6102",
         independent: "independent"
-      });
+      }));
     })(done);
   });
 

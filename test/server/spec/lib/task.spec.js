@@ -71,7 +71,7 @@ describe("lib/task", function () {
         expect(task.version).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and
-          .to.be.calledWith(pkg.version);
+          .to.be.calledWithMatch(pkg.version);
 
         done();
       });
@@ -81,10 +81,12 @@ describe("lib/task", function () {
 
   describe("#init", function () {
 
-    it("fails if no archetype specified", function (done) {
+    it("displys help if no archetype specified", function (done) {
+      sandbox.stub(Task.prototype, "help").yields();
       var task = new Task({ argv: ["node", "builder-init"] });
-      task.execute(function (err) {
-        expect(err).to.have.property("message").to.contain("Found 0 archetypes");
+      task.execute(function () {
+        expect(task.isInit()).to.be.false;
+        expect(task.help).to.be.calledOnce;
         done();
       });
     });
