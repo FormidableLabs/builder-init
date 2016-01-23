@@ -7,11 +7,25 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-// TODO HERE var run = require("../../../../bin/builder-init");
+var mock = require("mock-fs");
+//var run = require("../../../../bin/builder-init");
 
-require("../base.spec");
+var base = require("../base.spec");
 
 describe("bin/builder-init", function () {
+
+  beforeEach(function () {
+    // Default: empty mocked filesystem.
+    mock();
+
+    // Stub all I/O
+    base.sandbox.stub(process.stdout, "write");
+    base.sandbox.stub(process.stderr, "write");
+  });
+
+  afterEach(function () {
+    mock.restore();
+  });
 
   describe("base cases", function () {
 
