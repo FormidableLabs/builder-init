@@ -6,7 +6,7 @@ var fs = require("fs-extra");
 
 var Templates = require("../../../../lib/templates");
 
-require("../base.spec");
+var base = require("../base.spec");
 
 // Helpers
 // Read file path into a string.
@@ -162,13 +162,13 @@ describe("lib/templates", function () {
       });
     });
 
-    describe("gitignore files", function () {
+    describe("gitignore file", function () {
       var instance;
 
       beforeEach(function () {
         mock({
           "src": {
-            ".gitignore": "coverage", // TODO: SWITCH TO {{gitignore}}
+            ".gitignore": "coverage",
             "COPY.txt": "Should be copied",
             coverage: {
               "NO_COPY.txt": "Should not be copied"
@@ -178,7 +178,44 @@ describe("lib/templates", function () {
 
         instance = new Templates({
           src: "src",
-          dest: "dest"
+          dest: "dest",
+          data: base.addPromptDefaults() // Always get these from prompts
+        });
+        process = instance.process.bind(instance);
+      });
+
+      it("ignores .gitignore'd files", function (done) {
+        process(function (err) {
+          if (err) { return done(err); }
+
+          expect(read("dest/.gitignore")).to.equal("coverage");
+          expect(read("dest/COPY.txt")).to.equal("Should be copied");
+          expect(fs.existsSync("dest/coverage")).to.be.false;
+          expect(fs.existsSync("dest/coverage/NO_COPY.txt")).to.be.false;
+
+          done();
+        });
+      });
+    });
+
+    describe("gitignore template", function () {
+      var instance;
+
+      beforeEach(function () {
+        mock({
+          "src": {
+            "{{gitignore}}": "coverage", // Use token name per our guidelines
+            "COPY.txt": "Should be copied",
+            coverage: {
+              "NO_COPY.txt": "Should not be copied"
+            }
+          }
+        });
+
+        instance = new Templates({
+          src: "src",
+          dest: "dest",
+          data: base.addPromptDefaults() // Always get these from prompts
         });
         process = instance.process.bind(instance);
       });
