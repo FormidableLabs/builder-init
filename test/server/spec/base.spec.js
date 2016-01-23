@@ -31,7 +31,8 @@ before(function (done) {
 
   // Async resolve defaults for all tests here.
   async.auto(derived, function (err, results) {
-    base.PROMPT_DEFAULTS = results;
+    // Hard-code in "destination" for test-sensible-default.
+    base.PROMPT_DEFAULTS = _.extend({ destination: "destination" }, results);
     done(err);
   });
 });

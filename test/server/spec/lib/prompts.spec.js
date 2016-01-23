@@ -81,6 +81,8 @@ describe("lib/prompts", function () {
   });
 
   it("handles base cases", function (done) {
+    runStub.yields("destination");
+
     async.series([
       promptsWithData({}, function (data) {
         expect(data).to.deep.equal(addDefaults());
@@ -95,6 +97,8 @@ describe("lib/prompts", function () {
   });
 
   it("creates derived data alone", function (done) {
+    runStub.yields("destination");
+
     async.series([
       promptsWithData({
         derived: {
@@ -115,7 +119,7 @@ describe("lib/prompts", function () {
   });
 
   it("handles derived data errors", function (done) {
-    runStub.yields("user");
+    runStub.yields("userOrDestination");
 
     async.series([
       promptsWithErr({
@@ -155,7 +159,8 @@ describe("lib/prompts", function () {
       }, function () {
         runStub
           .reset()
-          .onCall(0).yields("2016");
+          .onCall(0).yields("2016")
+          .onCall(1).yields("destination");
       }, function (data) {
         expect(data).to.deep.equal(addDefaults({ licenseDate: "2016" }));
       }),
@@ -169,7 +174,8 @@ describe("lib/prompts", function () {
         runStub
           .reset()
           .onCall(0).yields("whiz-bang")
-          .onCall(1).yields("The Whiz Bang");
+          .onCall(1).yields("The Whiz Bang")
+          .onCall(2).yields("destination");
       }, function (data) {
         expect(data).to.deep.equal(addDefaults({
           packageName: "whiz-bang",
@@ -193,7 +199,8 @@ describe("lib/prompts", function () {
     }, function () {
       runStub
         .reset()
-        .onCall(0).yields("2016");
+        .onCall(0).yields("2016")
+        .onCall(1).yields("destination");
     }, function (data) {
       expect(data).to.deep.equal(addDefaults({
         year: "2016",
