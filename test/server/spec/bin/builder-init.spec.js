@@ -7,7 +7,7 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-var run = require("../../../../bin/builder-init");
+// TODO HERE var run = require("../../../../bin/builder-init");
 
 require("../base.spec");
 

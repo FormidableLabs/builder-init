@@ -14,26 +14,32 @@ var async = require("async");
 var sinon = require("sinon");
 var prompts = require("../../../lib/prompts");
 
-// Export some helpers.
-var base = module.exports;
+// ----------------------------------------------------------------------------
+// Base helpers.
+// ----------------------------------------------------------------------------
+var base = module.exports = {
+  // Generic test helpers.
+  sandbox: null,
 
-base.sandbox = null;
+  // File stuff
+  // NOTE: Sync methods are OK here because mocked and in-memory.
+  fileRead: function (filePath) {
+    return fs.readFileSync(filePath).toString();
+  },
+  fileExists: function (filePath) {
+    return fs.existsSync(filePath);
+  },
 
-// Prompts
-base.PROMPT_DEFAULTS = null;
-base.addPromptDefaults = function (data) {
-  return _.extend({}, base.PROMPT_DEFAULTS, data);
+  // Prompts helpers.
+  PROMPT_DEFAULTS: null,
+  addPromptDefaults: function (data) {
+    return _.extend({}, base.PROMPT_DEFAULTS, data);
+  }
 };
 
-// File stuff.
-// NOTE: Sync methods are OK here because mocked and in-memory.
-base.fileRead = function (filePath) {
-  return fs.readFileSync(filePath).toString();
-};
-base.fileExists = function (filePath) {
-  return fs.existsSync(filePath);
-};
-
+// ----------------------------------------------------------------------------
+// Global Setup / Teardown
+// ----------------------------------------------------------------------------
 before(function (done) {
   // Set test environment
   process.env.NODE_ENV = process.env.NODE_ENV || "test";
