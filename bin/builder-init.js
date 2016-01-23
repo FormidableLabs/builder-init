@@ -7,10 +7,19 @@ var async = require("async");
 var prompts = require("../lib/prompts");
 var Templates = require("../lib/templates");
 var Task = require("../lib/task");
-var task = new Task();
 
-// Script runner
-var run = module.exports = function (callback) {
+/**
+ * Script runner
+ *
+ * @param {Object}    opts       Options object for Task.
+ * @param {Array}     opts.argv  Arguments array (Default: `process.argv`)
+ * @param {Object}    opts.env   Environment object to mutate (Default `process.env`)
+ * @param {Function}  callback   Callback from script run `(err)`.
+ * @returns {void}
+ */
+var run = module.exports = function (opts, callback) {
+  var task = new Task(opts);
+
   // Help, version, etc. - just call straight up.
   if (!task.isInit()) {
     return task.execute(callback);
@@ -41,7 +50,7 @@ var run = module.exports = function (callback) {
 };
 
 if (require.main === module) {
-  run(function (err) {
+  run(null, function (err) {
     // TODO: REAL LOGGING
     // https://github.com/FormidableLabs/builder-init/issues/4
     if (err) { console.error(err); } // eslint-disable-line no-console
