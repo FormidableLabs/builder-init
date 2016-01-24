@@ -1,6 +1,5 @@
 "use strict";
 
-var mock = require("mock-fs");
 var Templates = require("../../../../lib/templates");
 var base = require("../base.spec");
 
@@ -109,8 +108,6 @@ describe("lib/templates", function () {
       var instance;
 
       beforeEach(function () {
-        mock();
-
         instance = new Templates({
           src: "nonexistent-dir",
           dest: "nonexistent-dir-dest"
@@ -130,7 +127,7 @@ describe("lib/templates", function () {
       var instance;
 
       beforeEach(function () {
-        mock({
+        base.mockFs({
           "empty-dir": {
             "another-empty-dir": {}
           }
@@ -155,7 +152,7 @@ describe("lib/templates", function () {
       var instance;
 
       beforeEach(function () {
-        mock({
+        base.mockFs({
           "src": {
             ".gitignore": "coverage",
             "COPY.txt": "Should be copied",
@@ -191,7 +188,7 @@ describe("lib/templates", function () {
       var instance;
 
       beforeEach(function () {
-        mock({
+        base.mockFs({
           "src": {
             "{{gitignore}}": "coverage", // Use token name per our guidelines
             "COPY.txt": "Should be copied",
@@ -228,7 +225,7 @@ describe("lib/templates", function () {
 
       beforeEach(function () {
         // Mock filesystem
-        mock({
+        base.mockFs({
           basic: {
             src: {
               "index.js": "var <%= codeName %> = require(\"./<%= code %>.js\");\n\n" +
@@ -250,10 +247,6 @@ describe("lib/templates", function () {
         });
 
         process = basicTemplates.process.bind(basicTemplates);
-      });
-
-      afterEach(function () {
-        mock.restore();
       });
 
       it("errors on missing data value", function (done) {

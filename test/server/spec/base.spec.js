@@ -9,6 +9,7 @@
  * be run in a separate process from other types of tests.
  */
 var _ = require("lodash");
+var mockFs = require("mock-fs");
 var fs = require("fs-extra");
 var async = require("async");
 var sinon = require("sinon");
@@ -20,6 +21,7 @@ var prompts = require("../../../lib/prompts");
 var base = module.exports = {
   // Generic test helpers.
   sandbox: null,
+  mockFs: null,
 
   // File stuff
   // NOTE: Sync methods are OK here because mocked and in-memory.
@@ -57,11 +59,13 @@ before(function (done) {
 });
 
 beforeEach(function () {
+  base.mockFs = mockFs;
   base.sandbox = sinon.sandbox.create({
     useFakeTimers: true
   });
 });
 
 afterEach(function () {
+  base.mockFs.restore();
   base.sandbox.restore();
 });

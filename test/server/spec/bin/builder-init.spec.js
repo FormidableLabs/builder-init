@@ -10,12 +10,9 @@
 var childProc = require("child_process");
 var crypto = require("crypto");
 var temp = require("temp").track();
-var path = require("path");
 var _ = require("lodash");
 var Prompt = require("inquirer/lib/prompts/base");
 
-var mock = require("mock-fs");
-var fs = require("fs-extra");
 var run = require("../../../../bin/builder-init");
 var Task = require("../../../../lib/task");
 var pkg = require("../../../../package.json");
@@ -55,7 +52,7 @@ var mockFlow = function (extracted, destDir) {
   var extractedObj = {};
   extractedObj[tmpDir] = _.merge({}, fsObj[tmpDir], extracted ? { extracted: extracted } : null);
 
-  mock(fsObj);
+  base.mockFs(fsObj);
 
   // Stub out creating a temp directory with a _known_ name.
   base.sandbox.stub(temp, "mkdir").yields(null, tmpDir);
@@ -68,7 +65,7 @@ var mockFlow = function (extracted, destDir) {
   // Use our special hook to change the filesystem as if we expanded a
   // real download.
   base.sandbox.stub(Task.prototype, "_onExtracted", function (callback) {
-    mock(extractedObj);
+    base.mockFs(extractedObj);
 
     return callback;
   });
@@ -76,16 +73,7 @@ var mockFlow = function (extracted, destDir) {
   base.sandbox.stub(Prompt.prototype, "run").yields(destDir || "dest");
 };
 
-describe.only("bin/builder-init", function () {
-
-  beforeEach(function () {
-    // Default: empty mocked filesystem.
-    mock();
-  });
-
-  afterEach(function () {
-    mock.restore();
-  });
+describe("bin/builder-init", function () {
 
   describe("non-init", function () {
 
