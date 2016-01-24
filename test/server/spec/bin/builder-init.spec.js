@@ -7,8 +7,15 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
+var childProc = require("child_process");
+var temp = require("temp").track();
+var path = require("path");
+var Prompt = require("inquirer/lib/prompts/base");
+
 var mock = require("mock-fs");
+var fs = require("fs-extra");
 var run = require("../../../../bin/builder-init");
+var Task = require("../../../../lib/task");
 var pkg = require("../../../../package.json");
 
 var base = require("../base.spec");
@@ -83,6 +90,7 @@ describe.only("bin/builder-init", function () {
     it("errors on missing init/ and init.js"); // TODO
     it("errors on missing init/ and no init.js"); // TODO
     it("errors on init/ not a directory"); // TODO
+    it("errors on failed npm pack download"); // TODO
     it("allows no init.js and empty init/"); // TODO
 
   });
@@ -106,7 +114,51 @@ describe.only("bin/builder-init", function () {
 
   describe("basic", function () {
 
-    it("initializes a simple project"); // TODO
+    it.only("initializes a simple project", stdioWrap(function (done) {
+      // TODO: Abstract to the helper at top.
+      // TODO: Need to make dirs actually random b/c of `require()` in there.
+      mock({
+        "tmp-dir": {
+          "mock-archetype-0.0.1.tgz": ""
+        }
+      });
+
+      // Stub out creating a temp directory with a _known_ name.
+      base.sandbox.stub(temp, "mkdir").yields(null, "tmp-dir");
+
+      // Override the `npm pack` process to just fail / succeed.
+      base.sandbox.stub(childProc, "spawn").returns({
+        on: base.sandbox.stub().withArgs("close").yields()
+      });
+
+      // Use our special hook to change the filesystem as if we expanded a
+      // real download.
+      base.sandbox.stub(Task.prototype, "_onExtracted", function (callback) {
+        mock({
+          "tmp-dir": {
+            "mock-archetype-0.0.1.tgz": "",
+            "extracted": {
+              "init.js": "module.exports = {};",
+              "init": {
+                "foo.js": "module.exports = { foo: 42 };"
+              }
+            }
+          }
+        });
+
+        return callback;
+      });
+
+      base.sandbox.stub(Prompt.prototype, "run").yields("dest")
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
+
+        done();
+      });
+    }));
 
   });
 
