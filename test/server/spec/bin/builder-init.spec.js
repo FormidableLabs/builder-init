@@ -116,6 +116,7 @@ describe("bin/builder-init", function () {
     it("errors on init/ not a directory"); // TODO
     it("errors on failed npm pack download"); // TODO
     it("allows no init.js and empty init/"); // TODO
+    it("allows no init.js with init/"); // TODO
 
   });
 
@@ -154,6 +155,9 @@ describe("bin/builder-init", function () {
         done();
       });
     }));
+
+    it("expands templates"); // TODO
+    it("handles all the bells and whistles"); // TODO
 
   });
 
