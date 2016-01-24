@@ -8,8 +8,10 @@
  * - Stubbing stdin to return canned responses to prompts
  */
 var childProc = require("child_process");
+var crypto = require("crypto");
 var temp = require("temp").track();
 var path = require("path");
+var _ = require("lodash");
 var Prompt = require("inquirer/lib/prompts/base");
 
 var mock = require("mock-fs");
@@ -20,6 +22,7 @@ var pkg = require("../../../../package.json");
 
 var base = require("../base.spec");
 
+// Helpers
 // **Note**: It would be great to just stub stderr, stdout in beforeEach,
 // but then we don't get test output. So, we manually stub with this wrapper.
 var stdioWrap = function (fn) {
@@ -38,6 +41,39 @@ var stdioWrap = function (fn) {
       return _done(err);
     }
   };
+};
+
+// Mock key I/O parts of the flow.
+var mockFlow = function (extracted, destDir) {
+  var hash = crypto.randomBytes(10).toString("hex");
+  var tmpDir = "tmp-dir-" + hash;
+  var fsObj = {};
+  fsObj[tmpDir] = {
+    "mock-archetype-0.0.1.tgz": ""
+  };
+
+  var extractedObj = {};
+  extractedObj[tmpDir] = _.merge({}, fsObj[tmpDir], extracted ? { extracted: extracted } : null);
+
+  mock(fsObj);
+
+  // Stub out creating a temp directory with a _known_ name.
+  base.sandbox.stub(temp, "mkdir").yields(null, tmpDir);
+
+  // Override the `npm pack` process to just fail / succeed.
+  base.sandbox.stub(childProc, "spawn").returns({
+    on: base.sandbox.stub().withArgs("close").yields()
+  });
+
+  // Use our special hook to change the filesystem as if we expanded a
+  // real download.
+  base.sandbox.stub(Task.prototype, "_onExtracted", function (callback) {
+    mock(extractedObj);
+
+    return callback;
+  });
+
+  base.sandbox.stub(Prompt.prototype, "run").yields(destDir || "dest");
 };
 
 describe.only("bin/builder-init", function () {
@@ -114,42 +150,13 @@ describe.only("bin/builder-init", function () {
 
   describe("basic", function () {
 
-    it.only("initializes a simple project", stdioWrap(function (done) {
-      // TODO: Abstract to the helper at top.
-      // TODO: Need to make dirs actually random b/c of `require()` in there.
-      mock({
-        "tmp-dir": {
-          "mock-archetype-0.0.1.tgz": ""
+    it("initializes a simple project", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "module.exports = {};",
+        "init": {
+          "foo.js": "module.exports = { foo: 42 };"
         }
       });
-
-      // Stub out creating a temp directory with a _known_ name.
-      base.sandbox.stub(temp, "mkdir").yields(null, "tmp-dir");
-
-      // Override the `npm pack` process to just fail / succeed.
-      base.sandbox.stub(childProc, "spawn").returns({
-        on: base.sandbox.stub().withArgs("close").yields()
-      });
-
-      // Use our special hook to change the filesystem as if we expanded a
-      // real download.
-      base.sandbox.stub(Task.prototype, "_onExtracted", function (callback) {
-        mock({
-          "tmp-dir": {
-            "mock-archetype-0.0.1.tgz": "",
-            "extracted": {
-              "init.js": "module.exports = {};",
-              "init": {
-                "foo.js": "module.exports = { foo: 42 };"
-              }
-            }
-          }
-        });
-
-        return callback;
-      });
-
-      base.sandbox.stub(Prompt.prototype, "run").yields("dest")
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return done(err); }
