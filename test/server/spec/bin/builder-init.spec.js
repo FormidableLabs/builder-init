@@ -41,7 +41,7 @@ var stdioWrap = function (fn) {
 };
 
 // Mock key I/O parts of the flow.
-var mockFlow = function (extracted, destDir) {
+var mockFlow = function (extracted) {
   var hash = crypto.randomBytes(10).toString("hex");
   var tmpDir = "tmp-dir-" + hash;
   var fsObj = {};
@@ -70,7 +70,7 @@ var mockFlow = function (extracted, destDir) {
     return callback;
   });
 
-  base.sandbox.stub(Prompt.prototype, "run").yields(destDir || "dest");
+  return base.sandbox.stub(Prompt.prototype, "run").yields("dest");
 };
 
 describe("bin/builder-init", function () {
@@ -109,14 +109,37 @@ describe("bin/builder-init", function () {
 
   });
 
-  describe("base cases", function () {
+  describe("errors", function () {
 
-    it("errors on missing init/ and init.js"); // TODO
-    it("errors on missing init/ and no init.js"); // TODO
-    it("errors on init/ not a directory"); // TODO
+    it("errors on missing init/ and no init.js", stdioWrap(function (done) {
+      mockFlow({});
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("init' directory not found");
+        done();
+      });
+    }));
+
+    it("errors on missing init/ with init.js", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "module.exports = {};"
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("init' directory not found");
+        done();
+      });
+    }));
+
+    it("errors on init/ not a directory", stdioWrap(function (done) {
+      mockFlow({
+        "init": "file, not a directory"
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("exists, but is not a directory");
+        done();
+      });
+    }));
+
     it("errors on failed npm pack download"); // TODO
-    it("allows no init.js and empty init/"); // TODO
-    it("allows no init.js with init/"); // TODO
 
   });
 
@@ -138,6 +161,9 @@ describe("bin/builder-init", function () {
   });
 
   describe("basic", function () {
+
+    it("allows no init.js and empty init/"); // TODO
+    it("allows no init.js with init/"); // TODO
 
     it("initializes a simple project", stdioWrap(function (done) {
       mockFlow({
