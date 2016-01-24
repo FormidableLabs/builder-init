@@ -173,17 +173,11 @@ describe("bin/builder-init", function () {
       mockFlow({
         "init": {}
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        expect(err).not.be.ok;
-        done();
-      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, done);
     }));
 
-    it("allows no init.js with init/"); // TODO
-
-    it("initializes a simple project", stdioWrap(function (done) {
+    it("allows no init.js with init/", stdioWrap(function (done) {
       mockFlow({
-        "init.js": "module.exports = {};",
         "init": {
           "foo.js": "module.exports = { foo: 42 };"
         }
@@ -198,6 +192,7 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("initializes a simple project"); // TODO
     it("expands templates"); // TODO
     it("handles all the bells and whistles"); // TODO
 
