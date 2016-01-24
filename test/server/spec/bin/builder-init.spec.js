@@ -41,15 +41,15 @@ var stdioWrap = function (fn) {
 };
 
 // Mock key I/O parts of the flow.
-var mockFlow = function (extracted) {
+var mockFlow = function (extracted, root) {
   var hash = crypto.randomBytes(10).toString("hex");
   var tmpDir = "tmp-dir-" + hash;
-  var fsObj = {};
+  var fsObj = _.extend({}, root);
   fsObj[tmpDir] = {
     "mock-archetype-0.0.1.tgz": ""
   };
 
-  var extractedObj = {};
+  var extractedObj = _.cloneDeep(fsObj);
   extractedObj[tmpDir] = _.merge({}, fsObj[tmpDir], extracted ? { extracted: extracted } : null);
 
   base.mockFs(fsObj);
@@ -139,6 +139,19 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("errors when destination already exists", stdioWrap(function (done) {
+      mockFlow({
+        "init": {}
+      }, {
+        "dest": {} // Will collide with default destination.
+      });
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("dest already exists");
+        done();
+      });
+    }));
+
     it("errors on failed npm pack download"); // TODO
 
   });
@@ -154,15 +167,18 @@ describe("bin/builder-init", function () {
 
   });
 
-  describe("output destination", function () {
-
-    it("errors when destination already exists"); // TODO
-
-  });
-
   describe("basic", function () {
 
-    it("allows no init.js and empty init/"); // TODO
+    it("allows no init.js and empty init/", stdioWrap(function (done) {
+      mockFlow({
+        "init": {}
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).not.be.ok;
+        done();
+      });
+    }));
+
     it("allows no init.js with init/"); // TODO
 
     it("initializes a simple project", stdioWrap(function (done) {
