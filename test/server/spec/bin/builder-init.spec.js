@@ -8,23 +8,74 @@
  * - Stubbing stdin to return canned responses to prompts
  */
 var mock = require("mock-fs");
-//var run = require("../../../../bin/builder-init");
+var run = require("../../../../bin/builder-init");
+var pkg = require("../../../../package.json");
 
 var base = require("../base.spec");
 
-describe("bin/builder-init", function () {
+// **Note**: It would be great to just stub stderr, stdout in beforeEach,
+// but then we don't get test output. So, we manually stub with this wrapper.
+var stdioWrap = function (fn) {
+
+  return function (done) {
+    base.sandbox.stub(process.stdout, "write");
+
+    var _done = function (err) {
+      process.stdout.write.restore();
+      done(err);
+    };
+
+    try {
+      return fn(_done);
+    } catch (err) {
+      return _done(err);
+    }
+  };
+};
+
+describe.only("bin/builder-init", function () {
 
   beforeEach(function () {
     // Default: empty mocked filesystem.
     mock();
-
-    // Stub all I/O
-    base.sandbox.stub(process.stdout, "write");
-    base.sandbox.stub(process.stderr, "write");
   });
 
   afterEach(function () {
     mock.restore();
+  });
+
+  describe("non-init", function () {
+
+    it("displays help on no args", stdioWrap(function (done) {
+      run({ argv: ["node", "builder-init"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
+
+        done();
+      });
+    }));
+
+    it("displays help on -h", stdioWrap(function (done) {
+      run({ argv: ["node", "builder-init", "-h"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
+
+        done();
+      });
+    }));
+
+    it("displays version on -v", stdioWrap(function (done) {
+      run({ argv: ["node", "builder-init", "-v"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(process.stdout.write).to.be.calledWithMatch(pkg.version);
+
+        done();
+      });
+    }));
+
   });
 
   describe("base cases", function () {
