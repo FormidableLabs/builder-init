@@ -98,10 +98,5 @@ describe("lib/task", function () {
       });
     });
 
-    // TODO: Add mocked module installations.
-    it("initializes from file");    // Try with `mock-fs`.
-    it("initializes from github");  // Need mocked network / npm.
-    it("initializes from git");     // Need mocked network / npm.
-
   });
 });
