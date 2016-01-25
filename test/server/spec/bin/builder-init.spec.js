@@ -181,6 +181,8 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("errors on invalid --prompts data"); // TODO
+
   });
 
   describe(".npmignore and .gitignore complexities", function () {
@@ -236,7 +238,7 @@ describe("bin/builder-init", function () {
       });
     }));
 
-    it("expands .npmignore, .gitignore and excludes ignored files", stdioWrap(function (done) {
+    it("expands .gitignore and excludes ignored files", stdioWrap(function (done) {
       var stubs = mockFlow({
         "init.js": "module.exports = " + JSON.stringify({
           prompts: {
@@ -301,6 +303,7 @@ describe("bin/builder-init", function () {
     it("initializes a simple project"); // TODO
     it("expands templates"); // TODO
     it("handles all the bells and whistles"); // TODO
+    it("handles --prompts data"); // TODO
 
   });
 

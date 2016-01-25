@@ -74,6 +74,20 @@ $ builder-init "${PWD}/../builder-react-component"
 $ builder-init "%cd%\..\builder-react-component"
 ```
 
+### Automating Prompts
+
+To facilitate automation, notably testing an archetype by generating a project
+with `builder-init` and running the project's tests as part of CI, there is a
+special `--prompts=JSON_OBJECT` flag that skips the actual input prompts and
+injects fields straight from a JSON object.
+
+```sh
+$ builder-init <archetype> --prompts'{"name":"bob","quest":"popcorn"}'
+```
+
+Note that _all_ required fields must be provided in the JSON object, no defaults
+are used, and the init process will fail if there are any missing fields.
+
 
 ## Archetype Templates
 
