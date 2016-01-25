@@ -188,7 +188,9 @@ describe("bin/builder-init", function () {
             name: { message: "a name" }
           }
         }) + ";",
-        "init": {}
+        "init": {
+          "{{name}}.txt": "A <%= name %>."
+        }
       });
       run({ argv: ["node", "builder-init", "archetype", "--prompts=INVALID"] }, function (err) {
         expect(err).to.have.property("message").that.contains("Prompt overrides loading failed");
@@ -313,10 +315,75 @@ describe("bin/builder-init", function () {
       });
     }));
 
-    it("initializes a simple project"); // TODO
-    it("expands templates"); // TODO
-    it("handles all the bells and whistles"); // TODO
-    it("handles --prompts data"); // TODO
+    it("initializes a basic project", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            varName: { message: "a variable name" }
+          }
+        }) + ";",
+        "init": {
+          "{{npmignore}}": "coverage",
+          "{{gitignore}}": "coverage",
+          "README.md": "My readme",
+          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };",
+          "test": {
+            "client": {
+              "spec": {
+                "{{fileName}}.spec.js": "describe('<%= fileName %>');"
+              }
+            }
+          }
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("file-name")
+        .onCall(1).yields("myCoolVar")
+        .onCall(2).yields("dest");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/.npmignore")).to.contain("coverage");
+        expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
+        expect(base.fileRead("dest/README.md")).to.contain("My readme");
+        expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
+        expect(base.fileRead("dest/test/client/spec/file-name.spec.js"))
+          .to.contain("describe('file-name');");
+
+        done();
+      });
+    }));
+
+    it("handles --prompts data", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            name: { message: "a name" }
+          }
+        }) + ";",
+        "init": {
+          "{{name}}.txt": "A <%= _.capitalize(name) %>."
+        }
+      });
+
+      var prompts = "--prompts='" + JSON.stringify({
+        name: "chester",
+        destination: "dest"
+      }) + "'";
+
+      run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
+
+        done();
+      });
+    }));
 
   });
 
