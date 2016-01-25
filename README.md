@@ -82,11 +82,13 @@ special `--prompts=JSON_OBJECT` flag that skips the actual input prompts and
 injects fields straight from a JSON object.
 
 ```sh
-$ builder-init <archetype> --prompts'{"name":"bob","quest":"popcorn"}'
+$ builder-init <archetype> \
+  --prompts'{"name":"bob","quest":"popcorn","destination":"my-project"}'
 ```
 
 Note that _all_ required fields must be provided in the JSON object, no defaults
 are used, and the init process will fail if there are any missing fields.
+**Tip**: You will need a `destination` value, which is added to all prompts.
 
 
 ## Archetype Templates
