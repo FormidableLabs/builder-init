@@ -23,7 +23,6 @@ var base = require("../base.spec");
 // **Note**: It would be great to just stub stderr, stdout in beforeEach,
 // but then we don't get test output. So, we manually stub with this wrapper.
 var stdioWrap = function (fn) {
-
   return function (done) {
     base.sandbox.stub(process.stdout, "write");
 
