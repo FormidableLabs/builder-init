@@ -67,7 +67,7 @@ Accordingly, if you _want_ to simulate a relative path install, you can try
 something like:
 
 ```sh
-# Mac / Linunx
+# Mac / Linux
 $ builder-init "${PWD}/../builder-react-component"
 
 # Windows
@@ -225,7 +225,7 @@ derived: {
 **The Problem**
 
 The `.npmignore` and `.gitignore` files in an `init/` templates directory are
-critical to the correct publishing / git lifecyle of a created project. However,
+critical to the correct publishing / git lifecycle of a created project. However,
 publishing `init/` to npm as part of publishing the archetype and even
 initializing off of a local file path via `npm pack` does not work well with
 the basic layout of:
