@@ -181,7 +181,20 @@ describe("bin/builder-init", function () {
       });
     }));
 
-    it("errors on invalid --prompts data"); // TODO
+    it("errors on invalid --prompts data", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            name: { message: "a name" }
+          }
+        }) + ";",
+        "init": {}
+      });
+      run({ argv: ["node", "builder-init", "archetype", "--prompts=INVALID"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("Prompt overrides loading failed");
+        done();
+      });
+    }));
 
   });
 
