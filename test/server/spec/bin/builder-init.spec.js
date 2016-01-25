@@ -41,7 +41,12 @@ var stdioWrap = function (fn) {
 };
 
 // Mock key I/O parts of the flow.
+/*eslint-disable max-statements*/
 var mockFlow = function (extracted, root) {
+  // Returned object.
+  var stubs = {};
+
+  // Fake filesystem for before and after (stubbed) extraction.
   var hash = crypto.randomBytes(10).toString("hex");
   var tmpDir = "tmp-dir-" + hash;
   var fsObj = _.extend({}, root);
@@ -57,9 +62,14 @@ var mockFlow = function (extracted, root) {
   // Stub out creating a temp directory with a _known_ name.
   base.sandbox.stub(temp, "mkdir").yields(null, tmpDir);
 
+  // Immediately call `close` with success exit.
+  stubs.spawnOn = base.sandbox.stub();
+  stubs.spawnOn.withArgs("error").returns();
+  stubs.spawnOn.withArgs("close").yields(0);
+
   // Override the `npm pack` process to just fail / succeed.
-  base.sandbox.stub(childProc, "spawn").returns({
-    on: base.sandbox.stub().withArgs("close").yields()
+  stubs.spawn = base.sandbox.stub(childProc, "spawn").returns({
+    on: stubs.spawnOn
   });
 
   // Use our special hook to change the filesystem as if we expanded a
@@ -70,8 +80,11 @@ var mockFlow = function (extracted, root) {
     return callback;
   });
 
-  return base.sandbox.stub(Prompt.prototype, "run").yields("dest");
+  stubs.prompt = base.sandbox.stub(Prompt.prototype, "run").yields("dest");
+
+  return stubs;
 };
+/*eslint-enable max-statements*/
 
 describe("bin/builder-init", function () {
 
@@ -152,7 +165,21 @@ describe("bin/builder-init", function () {
       });
     }));
 
-    it("errors on failed npm pack download"); // TODO
+    it("errors on failed npm pack download", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init": {}
+      });
+
+      // Fake npm pack download error.
+      stubs.spawnOn.reset();
+      stubs.spawnOn.withArgs("error").returns();
+      stubs.spawnOn.withArgs("close").yields(1);
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("exited with error code: 1");
+        done();
+      });
+    }));
 
   });
 
