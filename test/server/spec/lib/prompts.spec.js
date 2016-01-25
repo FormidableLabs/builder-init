@@ -95,6 +95,19 @@ describe("lib/prompts", function () {
     ], done);
   });
 
+  it("overrides prompts", function (done) {
+    promptsWithData({
+      overrides: JSON.stringify({
+        destination: "destination",
+        name: "Bob"
+      }),
+      prompts: { name: { message: "Name" }}
+    }, function (data) {
+      expect(runStub).to.not.be.called;
+      expect(data).to.deep.equal(addDefaults({ name: "Bob" }));
+    })(done);
+  });
+
   it("creates derived data alone", function (done) {
     runStub.yields("destination");
 
