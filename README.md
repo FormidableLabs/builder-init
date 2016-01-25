@@ -120,6 +120,9 @@ module.exports = {
 };
 ```
 
+Note that `builder-init` requires `destination` output directories to not exist
+before writing for safety and initialization sanity.
+
 #### User Prompts
 
 User prompts and responses are ingested using [inquirer][]. The `prompts` field
