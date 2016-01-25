@@ -3,6 +3,7 @@
 
 var path = require("path");
 var async = require("async");
+var chalk = require("chalk");
 
 var prompts = require("../lib/prompts");
 var Templates = require("../lib/templates");
@@ -14,11 +15,12 @@ var Task = require("../lib/task");
  * @param {Object}    opts       Options object for Task.
  * @param {Array}     opts.argv  Arguments array (Default: `process.argv`)
  * @param {Object}    opts.env   Environment object to mutate (Default `process.env`)
- * @param {Function}  callback   Callback from script run `(err)`.
+ * @param {Function}  callback   Callback from script run `(err, results)`.
  * @returns {void}
  */
 var run = module.exports = function (opts, callback) {
   var task = new Task(opts);
+  var bin = chalk.green.bold("[builder-init]");
 
   // Help, version, etc. - just call straight up.
   if (!task.isInit()) {
@@ -30,6 +32,10 @@ var run = module.exports = function (opts, callback) {
     download: task.execute.bind(task),
 
     prompts: ["download", function (cb, results) {
+      process.stdout.write(
+        bin + " Preparing templates for: " + chalk.magenta(task.archName) + "\n"
+      );
+
       prompts(results.download.init, cb);
     }],
 
@@ -44,9 +50,30 @@ var run = module.exports = function (opts, callback) {
         data: results.prompts
       });
 
-      templates.process(cb);
+
+      templates.process(function (err, outFiles) {
+        if (err) { return cb(err); }
+
+        process.stdout.write(
+          "\n" + bin + " Wrote files: \n" +
+          (outFiles || []).map(function (obj) {
+            return " - " + chalk.cyan(path.relative(process.cwd(), obj.dest));
+          }).join("\n") + "\n"
+        );
+
+        cb();
+      });
     }]
-  }, callback);
+  }, function (err, results) {
+    if (!err) {
+      process.stdout.write(
+        "\n" + bin + " New " + chalk.magenta(task.archName) + " project is ready at: " +
+        chalk.cyan(path.relative(process.cwd(), results.prompts.destination)) + "\n"
+      );
+    }
+
+    callback(err);
+  });
 };
 
 if (require.main === module) {
