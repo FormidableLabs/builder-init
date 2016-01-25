@@ -236,10 +236,40 @@ describe("bin/builder-init", function () {
       });
     }));
 
-    it("expands .gitignore"); // TODO
-    it("expands .gitignore and excludes ignored files"); // TODO
-    it("expands .npmignore"); // TODO
-    it("expands .npmignore and .gitignore"); // TODO
+    it("expands .npmignore, .gitignore and excludes ignored files", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            varName: { message: "a variable name" }
+          }
+        }) + ";",
+        "init": {
+          "{{gitignore}}": "coverage",
+          "coverage": {
+            "a-file": "shouldn't be copied"
+          },
+          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("file-name")
+        .onCall(1).yields("myCoolVar")
+        .onCall(2).yields("dest");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
+        expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
+        expect(base.fileExists("dest/coverage/a-file")).to.be.false;
+
+        done();
+      });
+    }));
 
   });
 
