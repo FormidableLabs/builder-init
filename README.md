@@ -90,6 +90,12 @@ Note that _all_ required fields must be provided in the JSON object, no defaults
 are used, and the init process will fail if there are any missing fields.
 **Tip**: You will need a `destination` value, which is added to all prompts.
 
+A working example is available at:
+[`builder-react-component/.travis.yml`](https://github.com/FormidableLabs/builder-react-component/blob/master/.travis.yml)
+which initializes the archetype's templates for a fresh project with canned
+`--prompts` values, npm installs dependencies, then runs the same `builder`
+tasks used in the project's CI.
+
 
 ## Archetype Templates
 
