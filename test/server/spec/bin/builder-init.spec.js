@@ -185,8 +185,57 @@ describe("bin/builder-init", function () {
 
   describe(".npmignore and .gitignore complexities", function () {
 
-    it("errors on .npmignore collision"); // TODO
-    it("errors on .gitignore collision"); // TODO
+    it("errors on .npmignore collision", stdioWrap(function (done) {
+      mockFlow({
+        "init": {
+          ".npmignore": "",
+          "{{npmignore}}": ""
+        }
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message")
+          .that.contains("Encountered 1 file path conflict").and
+          .that.contains("npmignore");
+
+        done();
+      });
+    }));
+
+    it("errors on .gitignore collision", stdioWrap(function (done) {
+      mockFlow({
+        "init": {
+          ".gitignore": "",
+          "{{gitignore}}": ""
+        }
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message")
+          .that.contains("Encountered 1 file path conflict").and
+          .that.contains("gitignore");
+
+        done();
+      });
+    }));
+
+    it("errors on .gitignore and .npmignore collisions", stdioWrap(function (done) {
+      mockFlow({
+        "init": {
+          ".gitignore": "",
+          "{{gitignore}}": "",
+          ".npmignore": "",
+          "{{npmignore}}": ""
+        }
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message")
+          .that.contains("Encountered 2 file path conflicts").and
+          .that.contains("gitignore").and
+          .that.contains("npmignore");
+
+        done();
+      });
+    }));
+
     it("expands .gitignore"); // TODO
     it("expands .gitignore and excludes ignored files"); // TODO
     it("expands .npmignore"); // TODO
