@@ -58,6 +58,32 @@ describe("lib/prompts", function () {
     runStub = base.sandbox.stub(Prompt.prototype, "run");
   });
 
+  describe("#_parseOverrides", function () {
+    var parse = prompts._parseOverrides.bind(prompts);
+
+    it("handles base cases", function () {
+      expect(parse("{}")).to.eql({});
+      expect(parse(" {}")).to.eql({});
+      expect(parse(" {}   ")).to.eql({});
+    });
+
+    it("handles non-quoted strings", function () {
+      expect(parse("{\"foo\":42}")).to.eql({ foo: 42 });
+    });
+
+    it("strips single quotes", function () {
+      expect(parse("'{\"foo\":42}'")).to.eql({ foo: 42 });
+      expect(parse("  '{\"foo\":42}'")).to.eql({ foo: 42 });
+      expect(parse("'{\"foo\":42}'  ")).to.eql({ foo: 42 });
+    });
+
+    it("strips double quotes", function () {
+      expect(parse("\"{\"foo\":42}\"")).to.eql({ foo: 42 });
+      expect(parse("  \"{\"foo\":42}\"")).to.eql({ foo: 42 });
+      expect(parse("\"{\"foo\":42}\"  ")).to.eql({ foo: 42 });
+    });
+  });
+
   it("errors on invalid init object", function (done) {
     async.series([
       promptsWithErr(undefined, function (err) {
