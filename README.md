@@ -6,6 +6,7 @@ Builder Initializer
 
 Initialize projects from [builder][] archetypes.
 
+
 ## Installation
 
 Install this package as a global dependency.
@@ -20,13 +21,117 @@ from scratch, so you have to start somewhere...
 
 ## Usage
 
-```
-TODO: Add usage, documentation.
-https://github.com/FormidableLabs/builder-init/issues/6
+`builder-init` can initialize any package that `npm` can
+[install](https://docs.npmjs.com/cli/install), including npm, GitHub, file, etc.
+
+Invocation:
+
+```sh
+$ builder-init [flags] <archetype>
 ```
 
+Flags:
 
-## Templates
+```
+  --help
+  --version
+  --prompts
+```
+
+Examples:
+
+```sh
+$ builder-init builder-react-component
+$ builder-init builder-react-component@0.2.0
+$ builder-init FormidableLabs/builder-react-component
+$ builder-init FormidableLabs/builder-react-component#v0.2.0
+$ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git
+$ builder-init git+ssh://git@github.com:FormidableLabs/builder-react-component.git#v0.2.0
+$ builder-init /FULL/PATH/TO/builder-react-component
+```
+
+Internally, `builder-init` utilizes [`npm pack`](https://docs.npmjs.com/cli/pack)
+to download (but not install) an archetype package from npm, GitHub, file, etc.
+There is a slight performance penalty for things like local files which have to
+be compressed and then expanded again, but we gain the very nice benefit of
+allowing `builder-init` to install anything `npm` can in exactly the same
+manner that `npm` does.
+
+### Installing from a Relative Path on the Local Filesystem
+
+One exception to the "install like `npm` does" rule is installation from the
+**local filesystem**. Internally, `builder-init` creates a temporary directory
+to expand the download from `npm pack` and executes the process in that
+directory, meaning that relative paths to a target archetype are now incorrect.
+
+Accordingly, if you _want_ to simulate a relative path install, you can try
+something like:
+
+```sh
+# Mac / Linux
+$ builder-init "${PWD}/../builder-react-component"
+
+# Windows
+$ builder-init "%cd%\..\builder-react-component"
+```
+
+### Automating Prompts
+
+To facilitate automation, notably testing an archetype by generating a project
+with `builder-init` and running the project's tests as part of CI, there is a
+special `--prompts=JSON_OBJECT` flag that skips the actual input prompts and
+injects fields straight from a JSON object.
+
+```sh
+$ builder-init <archetype> \
+  --prompts'{"name":"bob","quest":"popcorn","destination":"my-project"}'
+```
+
+Note that _all_ required fields must be provided in the JSON object, no defaults
+are used, and the init process will fail if there are any missing fields.
+**Tip**: You will need a `destination` value, which is added to all prompts.
+
+A working example is available at:
+[`builder-react-component/.travis.yml`](https://github.com/FormidableLabs/builder-react-component/blob/master/.travis.yml)
+which initializes the archetype's templates for a fresh project with canned
+`--prompts` values, npm installs dependencies, then runs the same `builder`
+tasks used in the project's CI.
+
+
+## Archetype Templates
+
+Authoring templates for an archetype consists of adding the following to your
+archetype source:
+
+* **`init.js`**: A control file for user prompts and data. See, e.g.,
+  [`builder-react-component/blob/master/init.js`](https://github.com/FormidableLabs/builder-react-component/blob/master/init.js)
+* **`init/`**: A directory of templates to inflate during initialization. See, e.g.,
+  [`builder-react-component/blob/master/init/`](https://github.com/FormidableLabs/builder-react-component/blob/master/init)
+
+For example, in `builder-react-component`, we have a control file and templates
+as follows:
+
+```
+init.js
+init/
+  .babelrc
+  .builderrc
+  .editorconfig
+  .travis.yml
+  CONTRIBUTING.md
+  demo/app.jsx
+  demo/index.html
+  LICENSE.txt
+  package.json
+  README.md
+  src/components/{{componentPath}}.jsx
+  src/index.js
+  test/client/main.js
+  test/client/spec/components/{{componentPath}}.spec.jsx
+  test/client/test.html
+  {{gitignore}}
+  {{npmignore}}
+```
 
 ### Archetype Data
 
@@ -35,10 +140,14 @@ root of the archetype. The structure of the file is:
 
 ```js
 module.exports = {
-  prompts: // Questions and responses for the user
-  derived: // Other fields derived from the data provided by the user
+  destination:  // A special prompt for output destination directory.
+  prompts:      // Questions and responses for the user
+  derived:      // Other fields derived from the data provided by the user
 };
 ```
+
+Note that `builder-init` requires `destination` output directories to not exist
+before writing for safety and initialization sanity.
 
 #### User Prompts
 
@@ -48,6 +157,20 @@ of the `init.js` object can either be an _array_ or _object_ of inquirer
 
 ```js
 module.exports = {
+  // Destination directory to write files to.
+  //
+  // This field is deep merged and added _last_ to the prompts so that archetype
+  // authors can add `default` values or override the default message. You
+  // could further override the `validate` function, but we suggest using the
+  // existing default as it checks the directory does not already exist (which
+  // is enforced later in code).
+  destination: {
+    default: function (data) {
+      // Use the early `name` prompt as the default value for our dest directory
+      return data.name;
+    }
+  },
+
   prompts: [
     {
       name: "name",
@@ -121,11 +244,74 @@ derived: {
 }
 ```
 
-### Application
+### Special Data and Scenarios
 
-Presently, _all_ files in the `init/` directory of an archetype are parsed as
-templates. We will reconsider this over time if escaping the template syntax
-becomes problematic.
+#### `.npmignore`, `.gitignore`
+
+**The Problem**
+
+The `.npmrc`, `.npmignore`, and `.gitignore` files in an `init/` templates
+directory are critical to the correct publishing / git lifecycle of a created
+project. However, publishing `init/` to npm as part of publishing the archetype
+and even initializing off of a local file path via `npm pack` does not work well
+with the basic layout of:
+
+```
+init/
+  .gitignore
+  .npmignore
+  .npmrc
+```
+
+The problem is that the `.npmignore` affects and filters out files that will
+be available for template use in an undesirable fashion. For example, in
+`builder-react-component` which has an `.npmignore` which includes:
+
+```
+demo
+test
+.editor*
+.travis*
+```
+
+natural `npm` processes would exclude all of the following template files:
+
+```
+init/.editorconfig
+init/.travis.yml
+init/test/client/main.js
+init/test/client/spec/components/{{componentPath}}.spec.jsx
+init/test/client/test.html
+init/demo/app.jsx
+init/demo/index.html
+```
+
+Adding even more complexity to the situation is the fact that if `npm` doesn't
+find a `.npmignore` on publishing or `npm pack` it will rename `.gitignore` to
+`.npmignore`.
+
+**The Solution**
+
+To address this, we have special `derived` values built in by default to
+`builder-init`. You do _not_ need to add them to your `init.js`:
+
+* `{{gitignore}}` -> `.gitignore`
+* `{{npmignore}}` -> `.npmignore`
+* `{{npmrc}}` -> `.npmrc`
+
+In your archetype `init` directory you should add any / none of these files
+with the following names instead of their real ones:
+
+```
+init/
+  {{gitignore}}
+  {{npmignore}}
+  {{npmrc}}
+```
+
+As a side note for your git usage, this now means that `init/.gitignore` doesn't
+control the templates anymore and your archetype's root `.gitignore` must
+appropriately ignore files in `init/` for git commits.
 
 ### Templates Directory Ingestion
 
@@ -138,6 +324,10 @@ for any files with the following features:
   directory will be filtered to ignore any `.gitignore` glob matches. This
   filtering is done at _load_ time before file name template strings are
   expanded (in case that matters).
+
+Presently, _all_ files in the `init/` directory of an archetype are parsed as
+templates. We will reconsider this over time if escaping the template syntax
+becomes problematic.
 
 ### Template Parsing
 

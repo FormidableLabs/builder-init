@@ -2,10 +2,10 @@
 
 var _ = require("lodash");
 var async = require("async");
+var Prompt = require("inquirer/lib/prompts/base");
 var prompts = require("../../../../lib/prompts");
-var Prompt = require("inquirer/lib/prompts/input");
-
-require("../base.spec");
+var base = require("../base.spec");
+var addDefaults = base.addPromptDefaults.bind(base);
 
 // Helpers
 /**
@@ -49,12 +49,39 @@ var promptsWithData = function (init, setupFn, assertFn) {
   };
 };
 
+
 describe("lib/prompts", function () {
   var runStub;
 
   beforeEach(function () {
     // Intercept all real stdin/stdout.
-    runStub = sandbox.stub(Prompt.prototype, "run");
+    runStub = base.sandbox.stub(Prompt.prototype, "run");
+  });
+
+  describe("#_parseOverrides", function () {
+    var parse = prompts._parseOverrides.bind(prompts);
+
+    it("handles base cases", function () {
+      expect(parse("{}")).to.eql({});
+      expect(parse(" {}")).to.eql({});
+      expect(parse(" {}   ")).to.eql({});
+    });
+
+    it("handles non-quoted strings", function () {
+      expect(parse("{\"foo\":42}")).to.eql({ foo: 42 });
+    });
+
+    it("strips single quotes", function () {
+      expect(parse("'{\"foo\":42}'")).to.eql({ foo: 42 });
+      expect(parse("  '{\"foo\":42}'")).to.eql({ foo: 42 });
+      expect(parse("'{\"foo\":42}'  ")).to.eql({ foo: 42 });
+    });
+
+    it("strips double quotes", function () {
+      expect(parse("\"{\"foo\":42}\"")).to.eql({ foo: 42 });
+      expect(parse("  \"{\"foo\":42}\"")).to.eql({ foo: 42 });
+      expect(parse("\"{\"foo\":42}\"  ")).to.eql({ foo: 42 });
+    });
   });
 
   it("errors on invalid init object", function (done) {
@@ -79,20 +106,37 @@ describe("lib/prompts", function () {
   });
 
   it("handles base cases", function (done) {
+    runStub.yields("destination");
+
     async.series([
       promptsWithData({}, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       }),
       promptsWithData({ prompts: [] }, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       }),
       promptsWithData({ prompts: {}, derived: {} }, function (data) {
-        expect(data).to.deep.equal({});
+        expect(data).to.deep.equal(addDefaults());
       })
     ], done);
   });
 
+  it("overrides prompts", function (done) {
+    promptsWithData({
+      overrides: JSON.stringify({
+        destination: "destination",
+        name: "Bob"
+      }),
+      prompts: { name: { message: "Name" }}
+    }, function (data) {
+      expect(runStub).to.not.be.called;
+      expect(data).to.deep.equal(addDefaults({ name: "Bob" }));
+    })(done);
+  });
+
   it("creates derived data alone", function (done) {
+    runStub.yields("destination");
+
     async.series([
       promptsWithData({
         derived: {
@@ -100,20 +144,20 @@ describe("lib/prompts", function () {
           bar: function (data, cb) { cb(null, "bar"); }
         }
       }, function (data) {
-        expect(data).to.deep.equal({ foo: "foo", bar: "bar" });
+        expect(data).to.deep.equal(addDefaults({ foo: "foo", bar: "bar" }));
       }),
       promptsWithData({
         derived: {
           deferred: function (data, cb) { _.defer(cb.bind(null, null, "foo")); }
         }
       }, function (data) {
-        expect(data).to.deep.equal({ deferred: "foo" });
+        expect(data).to.deep.equal(addDefaults({ deferred: "foo" }));
       })
     ], done);
   });
 
   it("handles derived data errors", function (done) {
-    runStub.yields("user");
+    runStub.yields("userOrDestination");
 
     async.series([
       promptsWithErr({
@@ -153,9 +197,10 @@ describe("lib/prompts", function () {
       }, function () {
         runStub
           .reset()
-          .onCall(0).yields("2016");
+          .onCall(0).yields("2016")
+          .onCall(1).yields("destination");
       }, function (data) {
-        expect(data).to.deep.equal({ licenseDate: "2016" });
+        expect(data).to.deep.equal(addDefaults({ licenseDate: "2016" }));
       }),
 
       promptsWithData({
@@ -167,12 +212,13 @@ describe("lib/prompts", function () {
         runStub
           .reset()
           .onCall(0).yields("whiz-bang")
-          .onCall(1).yields("The Whiz Bang");
+          .onCall(1).yields("The Whiz Bang")
+          .onCall(2).yields("destination");
       }, function (data) {
-        expect(data).to.deep.equal({
+        expect(data).to.deep.equal(addDefaults({
           packageName: "whiz-bang",
           packageDescription: "The Whiz Bang"
-        });
+        }));
       })
     ], done);
   });
@@ -191,13 +237,14 @@ describe("lib/prompts", function () {
     }, function () {
       runStub
         .reset()
-        .onCall(0).yields("2016");
+        .onCall(0).yields("2016")
+        .onCall(1).yields("destination");
     }, function (data) {
-      expect(data).to.deep.equal({
+      expect(data).to.deep.equal(addDefaults({
         year: "2016",
         reverseYear: "6102",
         independent: "independent"
-      });
+      }));
     })(done);
   });
 
