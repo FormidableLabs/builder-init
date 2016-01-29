@@ -2,6 +2,7 @@
 "use strict";
 
 var path = require("path");
+var _ = require("lodash");
 var async = require("async");
 var chalk = require("chalk");
 
@@ -47,9 +48,10 @@ var run = module.exports = function (opts, callback) {
       var templates = new Templates({
         src: results.download.src,
         dest: path.resolve(results.prompts.destination),
-        data: results.prompts
+        data: _.extend({
+          archetype: results.download.archetype
+        }, results.prompts)
       });
-
 
       templates.process(function (err, outFiles) {
         if (err) { return cb(err); }
