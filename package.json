@@ -1,6 +1,6 @@
 {
   "name": "builder-init",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Builder initialization / generator",
   "repository": {
     "type": "git",
