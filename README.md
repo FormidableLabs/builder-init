@@ -313,6 +313,37 @@ As a side note for your git usage, this now means that `init/.gitignore` doesn't
 control the templates anymore and your archetype's root `.gitignore` must
 appropriately ignore files in `init/` for git commits.
 
+#### `<archetype>/package.json`, `<archetype>/dev/package.json`
+
+There is often a "chicken vs. egg" situation of an archetype under update vs.
+the `init/` templates installed from and using the archetype. To help a variety
+of situations, we provide a special `archetype` data variable with the
+following data:
+
+```
+archetype:
+  package       // `<archetype>/package.json` if it exists, else `{}`
+  devPackage    // `<archetype>/dev/package.json` if it exists, else `{}`
+```
+
+This enables you to have "always correct" version values for `init/package.json`
+by doing something like:
+
+```js
+{
+  "dependencies": {
+    "builder": "^2.5.0",
+    "builder-react-component": "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
+  },
+  "devDependencies": {
+    "builder-react-component-dev": "<%= archetype.devPackage.version ? '^' + archetype.devPackage.version : '*' %>",
+  }
+}
+```
+
+In your template content.
+
+
 ### Templates Directory Ingestion
 
 `builder-init` mostly just walks the `init/` directory of an archetype looking
@@ -394,6 +425,60 @@ init/src/components/{{packageName}}.jsx
 `builder-init` will validate the expanded file tokens to detect clashes with
 other static file names provided by the generator.
 
+## Archetype Development Guide
+
+There is a "chicken vs. egg" problem when developing changes to both an
+archetype _and_ the `init/` templates. Here is a workflow that should be
+appropriate for most scenarios using `builder-react-component` as an example.
+
+First, `npm link` your archetype and its `-dev` version if applicable.
+
+```sh
+# Link prod archetype
+$ cd /PATH/TO/builder-react-component
+$ npm link
+
+# Link dev archetype (if you have one)
+$ cd dev
+$ npm link
+```
+
+Next, install off _directory_ in workspace of your choosing:
+
+```sh
+$ cd /PATH/TO/TEMP_WORKSPACE
+$ npm install -g builder-init
+$ builder-init /PATH/TO/builder-react-component
+# ... answer prompts, etc.
+
+[builder-init] New builder-react-component project is ready at: PROJECT_NAME
+```
+
+Then, change to project directory, npm link as appropriate and install.
+
+```sh
+$ cd PROJECT_NAME
+$ npm link builder-react-component
+$ npm link builder-react-component-dev
+$ npm install
+```
+
+You can check you are using the appropriately symlinked modules on Mac/Linux
+with:
+
+```sh
+$ ls -l node_modules | grep ^l
+lrwxr-xr-x   1 USER  COMPUTER Users    64 Jan 29 16:20 builder-react-component -> ../../../../.nvm/v4.2.4/lib/node_modules/builder-react-component
+lrwxr-xr-x   1 USER  COMPUTER Users    68 Jan 29 16:20 builder-react-component-dev -> ../../../../.nvm/v4.2.4/lib/node_modules/builder-react-component-dev
+```
+
+All actions in your generated project will now use your "under development"
+archetype on your local filesystem.
+
+*Side Note* - our CI checks for initializing a new project from scratch for
+archetypes like `builder-react-component` pretty much follows this exact scheme.
+See our above section on [Automating Prompts](#automating-prompts) for links
+and other setup information.
 
 [builder]: https://github.com/FormidableLabs/builder
 [inquirer]: https://github.com/SBoudrias/Inquirer.js

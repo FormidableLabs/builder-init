@@ -348,6 +348,16 @@ describe("bin/builder-init", function () {
           "{{npmignore}}": "coverage",
           "{{gitignore}}": "coverage",
           "README.md": "My readme",
+          "package.json": JSON.stringify({
+            dependencies: {
+              "mock-archetype":
+                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
+            },
+            devDependencies: {
+              "mock-archetype-dev":
+                "<%= archetype.devPackage.version ? '^' + archetype.devPackage.version : '*' %>"
+            }
+          }, null, 2),
           "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };",
           "test": {
             "client": {
@@ -375,6 +385,61 @@ describe("bin/builder-init", function () {
         expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
         expect(base.fileRead("dest/test/client/spec/file-name.spec.js"))
           .to.contain("describe('file-name');");
+        expect(base.fileRead("dest/package.json"))
+          .to.contain("\"mock-archetype\": \"*\"").and
+          .to.contain("\"mock-archetype-dev\": \"*\"");
+
+        done();
+      });
+    }));
+
+    it("adds archetype prod/dev package.json", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "package.json": JSON.stringify({
+          version: "0.1.2"
+        }),
+        "dev": {
+          "package.json": JSON.stringify({
+            version: "0.1.1"
+          })
+        },
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            varName: { message: "a variable name" }
+          }
+        }) + ";",
+        "init": {
+          "README.md": "My readme",
+          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };",
+          "package.json": JSON.stringify({
+            dependencies: {
+              "mock-archetype":
+                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
+            },
+            devDependencies: {
+              "mock-archetype-dev":
+                "<%= archetype.devPackage.version ? '^' + archetype.devPackage.version : '*' %>"
+            }
+          }, null, 2)
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("file-name")
+        .onCall(1).yields("myCoolVar")
+        .onCall(2).yields("dest");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/README.md")).to.contain("My readme");
+        expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
+        expect(base.fileRead("dest/package.json"))
+          .to.contain("\"mock-archetype\": \"^0.1.2\"").and
+          .to.contain("\"mock-archetype-dev\": \"^0.1.1\"");
 
         done();
       });
@@ -406,6 +471,41 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("handles --prompts data with 'archetype' field", stdioWrap(function (done) {
+      mockFlow({
+        "package.json": JSON.stringify({
+          version: "0.1.2"
+        }),
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            name: { message: "a name" }
+          }
+        }) + ";",
+        "init": {
+          "{{name}}.txt": "A <%= _.capitalize(name) %>.",
+          "package.json": JSON.stringify({
+            dependencies: {
+              "mock-archetype":
+                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
+            }
+          }, null, 2)
+        }
+      });
+
+      var prompts = "--prompts='" + JSON.stringify({
+        name: "chester",
+        destination: "dest"
+      }) + "'";
+
+      run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
+        expect(base.fileRead("dest/package.json")).to.contain("\"mock-archetype\": \"^0.1.2\"");
+
+        done();
+      });
+    }));
   });
 
 });
