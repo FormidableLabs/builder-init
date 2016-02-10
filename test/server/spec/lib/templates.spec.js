@@ -1,5 +1,7 @@
 "use strict";
 
+var _ = require("lodash");
+var async = require("async");
 var Templates = require("../../../../lib/templates");
 var base = require("../base.spec");
 
@@ -64,40 +66,93 @@ describe("lib/templates", function () {
   describe("#processTemplate", function () {
     var instance;
     var processTemplate;
+    var expectFn = function (input, expected) {
+      return function (cb) {
+        processTemplate(input, function (err, actual) {
+          if (err) { return cb(err); }
+
+          expect(actual).to.deep.equal(_.extend({}, actual, expected));
+
+          cb();
+        });
+      };
+    };
 
     beforeEach(function () {
       instance = new Templates();
       processTemplate = instance.processTemplate.bind(instance);
     });
 
-    it("handles non-parsed content", function () {
-      expect(processTemplate({ dest: "foo", content: "" }))
-        .to.eql({ dest: "foo", content: "" });
-      expect(processTemplate({ dest: "bar/bar", content: "Hi" }))
-        .to.eql({ dest: "bar/bar", content: "Hi" });
+    it("handles non-parsed content", function (done) {
+      async.series([
+        expectFn({ dest: "foo", buffer: new Buffer([]) }, { content: null }),
+        expectFn({ dest: "bar/bar", buffer: new Buffer("Hi") }, { content: null }),
+        expectFn({ dest: "foo", buffer: base.fixtures["formidagon.svg"] }, { content: null })
+      ], done);
     });
 
-    it("leaves ES template strings untouched", function () {
-      expect(processTemplate({ dest: "foo", content: "var foo = `${bar} yo`;" }))
-        .to.eql({ dest: "foo", content: "var foo = `${bar} yo`;" });
-      expect(processTemplate({ dest: "foo", content: "var foo = { bar: `${bar} yo` };" }))
-        .to.eql({ dest: "foo", content: "var foo = { bar: `${bar} yo` };" });
+    it("ignores non-text files", function (done) {
+      async.series([
+        expectFn({ dest: "foo", buffer: new Buffer([0x00]) }, { content: null }),
+        expectFn({ dest: "foo", buffer: new Buffer([0xFF]) }, { content: null }),
+        expectFn({ dest: "foo", buffer: base.fixtures["formidagon.png"] }, { content: null })
+      ], done);
     });
 
-    it("parses file content", function () {
+    it("parses SVGs", function (done) {
+      instance.data = { fillColor: "#003399", message: "I'm a logo" };
+
+      processTemplate({
+        dest: "foo",
+        buffer: base.fixtures["formidagon.tmpl.svg"]
+      }, function (err, data) {
+        if (err) { return done(err); }
+
+        expect(data).to.have.property("content")
+          .that.contains("fill:#003399;").and
+          .that.contains("class=\"text0 text1\">I'm a logo</text>");
+
+        done();
+      });
+    });
+
+    it("leaves ES template strings untouched", function (done) {
+      async.series([
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = `${bar} yo`;") }, { content: null }),
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = { bar: `${bar} yo` };") },
+          { content: null })
+      ], done);
+    });
+
+    it("parses file content", function (done) {
       instance.data = { bar: "42" };
-      expect(processTemplate({ dest: "foo", content: "var foo = <%=bar%>;" }))
-        .to.eql({ dest: "foo", content: "var foo = 42;" });
-      expect(processTemplate({ dest: "foo", content: "var foo = {bar: <%= bar %>};" }))
-        .to.eql({ dest: "foo", content: "var foo = {bar: 42};" });
+
+      async.series([
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = <%=bar%>;") },
+          { content: "var foo = 42;" }),
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = {bar: <%= bar %>};") },
+          { content: "var foo = {bar: 42};" })
+      ], done);
     });
 
-    it("parses file names", function () {
+    it("handles bad template strings", function (done) {
+      instance.data = { bar: "42" };
+
+      async.series([
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = <%=bar;") }, { content: null }),
+        expectFn({ dest: "foo", buffer: new Buffer("var foo = {bar: bar %>};") }, { content: null })
+      ], done);
+    });
+
+    it("parses file names", function (done) {
       instance.data = { file: "the-stuffz", bar: "23" };
-      expect(processTemplate({ dest: "{{file}}.js", content: "var foo = <%=bar%>;" }))
-        .to.eql({ dest: "the-stuffz.js", content: "var foo = 23;" });
-      expect(processTemplate({ dest: "{{file}}/bar/{{bar}}.js", content: "HI" }))
-        .to.eql({ dest: "the-stuffz/bar/23.js", content: "HI" });
+
+      async.series([
+        expectFn({ dest: "{{file}}.js", buffer: new Buffer("var foo = <%=bar%>;") },
+          { dest: "the-stuffz.js", content: "var foo = 23;" }),
+        expectFn({ dest: "{{file}}/bar/{{bar}}.js", buffer: new Buffer("HI") },
+          { dest: "the-stuffz/bar/23.js", content: null })
+      ], done);
     });
   });
 
