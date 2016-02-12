@@ -1,7 +1,13 @@
 History
 =======
 
+<!--
 ## Current
+
+* XXX
+-->
+
+## 0.2.0
 
 * Update template processing logic to detect and only process text files.
   [#21](https://github.com/FormidableLabs/builder-init/issues/21)
