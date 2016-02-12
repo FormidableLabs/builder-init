@@ -49,6 +49,8 @@ var mockFlow = function (extracted, root) {
   var stubs = {};
 
   // Fake filesystem for before and after (stubbed) extraction.
+  //
+  // **Note**: Don't use `_.merge()` with `Buffer` objects in the mock fs.
   var hash = crypto.randomBytes(10).toString("hex");
   var tmpDir = "tmp-dir-" + hash;
   var fsObj = _.extend({}, root);
@@ -56,8 +58,13 @@ var mockFlow = function (extracted, root) {
     "mock-archetype-0.0.1.tgz": ""
   };
 
-  var extractedObj = _.cloneDeep(fsObj);
-  extractedObj[tmpDir] = _.merge({}, fsObj[tmpDir], extracted ? { extracted: extracted } : null);
+  var extractedObj = _.extend({}, root);
+  extractedObj[tmpDir] = {
+    "mock-archetype-0.0.1.tgz": ""
+  };
+  if (extracted) {
+    extractedObj[tmpDir].extracted = extracted;
+  }
 
   base.mockFs(fsObj);
 
@@ -331,6 +338,48 @@ describe("bin/builder-init", function () {
         if (err) { return done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
+
+        done();
+      });
+    }));
+
+    it("doesn't mutate binary data (png), but will parse SVGs", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            fillColor: { message: "a SVG fill color" },
+            message: { message: "a SVG fill message" }
+          }
+        }) + ";",
+        "init": {
+          "foo.js": "module.exports = { foo: 42 };",
+          "{{fileName}}.svg": base.fixtures["formidagon.svg"],
+          "from-template.svg": base.fixtures["formidagon.tmpl.svg"],
+          "image.png": base.fixtures["formidagon.png"]
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("svg-file")
+        .onCall(1).yields("#993300")
+        .onCall(2).yields("moar messages");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
+
+        expect(base.fileRead("dest/svg-file.svg"))
+          .to.equal(base.fixtures["formidagon.svg"].toString());
+        expect(base.fileRead("dest/from-template.svg"))
+          .to.contain("fill:#993300;").and
+          .to.contain("class=\"text0 text1\">moar messages</text>");
+
+        expect(base.fileRead("dest/image.png", "base64"))
+          .to.equal(base.fixtures["formidagon.png"].toString("base64"));
 
         done();
       });

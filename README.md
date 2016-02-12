@@ -356,9 +356,21 @@ for any files with the following features:
   filtering is done at _load_ time before file name template strings are
   expanded (in case that matters).
 
-Presently, _all_ files in the `init/` directory of an archetype are parsed as
-templates. We will reconsider this over time if escaping the template syntax
-becomes problematic.
+`builder-init` tries to intelligently determine if files in the `init/`
+directory are actually text template files with the following heuristic:
+
+1. Inspect the magic numbers for known text files and opportunistically the
+   byte range of the file buffer with https://github.com/gjtorikian/isBinaryFile.
+   If binary bytes detected, don't process.
+2. Inspect the magic numbers for known binary types with
+   https://github.com/sindresorhus/file-type
+   If known binary type detected, don't process.
+3. Otherwise, try to process as a template.
+
+If this heuristic approach proves too complicated / problematic, we'll consider
+a more significant revision of processing with something more heavy-handed like
+an opt-in file naming scheme or a blessed "unprocessed" directory
+(such as `init-raw/`).
 
 ### Template Parsing
 
@@ -424,6 +436,21 @@ init/src/components/{{packageName}}.jsx
 
 `builder-init` will validate the expanded file tokens to detect clashes with
 other static file names provided by the generator.
+
+
+## Tips, Tricks, & Notes
+
+### npmrc File
+
+If you use Private npm, or a non-standard registry, or anything leveraging a
+custom [`npmrc`](https://docs.npmjs.com/files/npmrc) file, you need to set
+a **user** (`~/.npmrc`) or **global** (`$PREFIX/etc/npmrc`) npmrc file.
+
+`builder-init` relies on `npm pack` under the hood and runs from a temporary
+directory completely outside of the current working directory. So, while
+`npm info <module>` or `npm pack <module>` would work just fine with an
+`.npmrc` file in the current working directory, `builder-init` will not.
+
 
 ## Archetype Development Guide
 
