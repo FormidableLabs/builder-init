@@ -7,6 +7,11 @@ History
 * XXX
 -->
 
+## 0.2.1
+
+* Expand full stack traces on errors.
+* Add specific message for `<archetype>/init.js` import error.
+
 ## 0.2.0
 
 * Update template processing logic to detect and only process text files.
