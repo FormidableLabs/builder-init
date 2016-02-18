@@ -10,6 +10,15 @@ var prompts = require("../lib/prompts");
 var Templates = require("../lib/templates");
 var Task = require("../lib/task");
 
+// TODO: REAL LOGGING
+// https://github.com/FormidableLabs/builder-init/issues/4
+/* eslint-disable no-console */
+var logError = function (err) {
+  // Print the error with stack trace if available
+  console.error(err.stack || err);
+};
+/* eslint-enable no-console */
+
 /**
  * Script runner
  *
@@ -80,9 +89,7 @@ var run = module.exports = function (opts, callback) {
 
 if (require.main === module) {
   run(null, function (err) {
-    // TODO: REAL LOGGING
-    // https://github.com/FormidableLabs/builder-init/issues/4
-    if (err) { console.error(err); } // eslint-disable-line no-console
+    if (err) { logError(err); }
 
     process.exit(err ? err.code || 1 : 0); // eslint-disable-line no-process-exit
   });
