@@ -82,7 +82,10 @@ if (require.main === module) {
   run(null, function (err) {
     // TODO: REAL LOGGING
     // https://github.com/FormidableLabs/builder-init/issues/4
-    if (err) { console.error(err); } // eslint-disable-line no-console
+    if (err) {
+      // Try to get full stack, then full string if not.
+      console.error(err.stack || err.toString()); // eslint-disable-line no-console
+    }
 
     process.exit(err ? err.code || 1 : 0); // eslint-disable-line no-process-exit
   });

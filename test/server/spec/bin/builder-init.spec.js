@@ -226,6 +226,21 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("errors on invalid init.js", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "BAD_CODE {",
+        "init": {
+          "{{name}}.txt": "A <%= name %>."
+        }
+      });
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message")
+          .that.contains("[builder-init] Error while importing 'mock-archetype/init.js'").and
+          .that.contains("Unexpected token {");
+
+        done();
+      });
+    }));
   });
 
   describe(".npmignore and .gitignore complexities", function () {
