@@ -7,6 +7,11 @@ History
 * XXX
 -->
 
+## Current
+
+* Make `npm pack` spawn Windows-compatible.
+  [#27](https://github.com/FormidableLabs/builder-init/issues/27)
+
 ## 0.2.1
 
 * Expand full stack traces on errors.
