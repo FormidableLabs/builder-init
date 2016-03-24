@@ -7,6 +7,10 @@ History
 * XXX
 -->
 
+## 0.2.3
+
+* Add support for `{{eslintrc}}` derived file template.
+
 ## 0.2.2
 
 * Make `npm pack` spawn Windows-compatible.
