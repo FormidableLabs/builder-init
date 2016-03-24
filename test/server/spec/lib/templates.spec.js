@@ -275,6 +275,34 @@ describe("lib/templates", function () {
       });
     });
 
+    describe("eslintrc file", function () {
+      var instance;
+
+      beforeEach(function () {
+        base.mockFs({
+          "src": {
+            "{{eslintrc}}": "---"  // Use token name per our guidelines
+          }
+        });
+
+        instance = new Templates({
+          src: "src",
+          dest: "dest",
+          data: base.addPromptDefaults() // Always get these from prompts
+        });
+        process = instance.process.bind(instance);
+      });
+
+      it("supports .eslintrc file template", function (done) {
+        process(function (err) {
+          if (err) { return done(err); }
+
+          expect(base.fileRead("dest/.eslintrc")).to.equal("---");
+          done();
+        });
+      });
+    });
+
     describe("basic templates", function () {
       var basicTemplates;
 
