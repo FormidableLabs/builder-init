@@ -298,6 +298,7 @@ To address this, we have special `derived` values built in by default to
 * `{{gitignore}}` -> `.gitignore`
 * `{{npmignore}}` -> `.npmignore`
 * `{{npmrc}}` -> `.npmrc`
+* `{{eslintrc}}` -> `.eslintrc`
 
 In your archetype `init` directory you should add any / none of these files
 with the following names instead of their real ones:
@@ -307,6 +308,7 @@ init/
   {{gitignore}}
   {{npmignore}}
   {{npmrc}}
+  {{eslintrc}}
 ```
 
 As a side note for your git usage, this now means that `init/.gitignore` doesn't
