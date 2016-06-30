@@ -7,6 +7,31 @@ Builder Initializer
 Initialize projects from [builder][] archetypes.
 
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Installing from a Relative Path on the Local Filesystem](#installing-from-a-relative-path-on-the-local-filesystem)
+  - [Automating Prompts](#automating-prompts)
+- [Archetype Templates](#archetype-templates)
+  - [Archetype Data](#archetype-data)
+    - [Imports and Dependencies](#imports-and-dependencies)
+    - [User Prompts](#user-prompts)
+    - [Derived Data](#derived-data)
+  - [Special Data and Scenarios](#special-data-and-scenarios)
+    - [`.npmignore`, `.gitignore`](#npmignore-gitignore)
+    - [`<archetype>/package.json`, `<archetype>/dev/package.json`](#archetypepackagejson-archetypedevpackagejson)
+  - [Templates Directory Ingestion](#templates-directory-ingestion)
+  - [Template Parsing](#template-parsing)
+  - [File Name Parsing](#file-name-parsing)
+- [Tips, Tricks, & Notes](#tips-tricks-&-notes)
+  - [npmrc File](#npmrc-file)
+- [Archetype Development Guide](#archetype-development-guide)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Installation
 
 Install this package as a global dependency.
@@ -148,6 +173,27 @@ module.exports = {
 
 Note that `builder-init` requires `destination` output directories to not exist
 before writing for safety and initialization sanity.
+
+#### Imports and Dependencies
+
+The `init.js` file is `require`-ed from a temporary `extracted` directory
+containing the full archetype. However, an `npm install` is not run in the
+archetype directory prior to starting the initialization process. This means
+that you can `require` in:
+
+* Files contained in the archetype itself.
+* Any standard node libraries. (E.g., `require("path")`, `require("fs")`).
+
+Unfortunately, you cannot require third party libraries or things that may
+be found in `<archetype>/node_modules/`. (E.g., `require("lodash")`).
+
+This is a good thing, because the common case is that you will need nearly
+_none_ of the dependencies in `init.js` prompting that are used in the archetype
+itself, so `builder-init` remains lightening quick by _not_ needing to do any
+`npm install`-ing.
+
+There is a [future ticket](https://github.com/FormidableLabs/builder-init/issues/32)
+to consider supporting custom `npm` dependencies in the `init.js file.
 
 #### User Prompts
 

@@ -22,7 +22,8 @@
     "builder:test": "mocha --opts test/server/mocha.opts test/server/spec",
     "builder:test-cov": "istanbul cover --config .istanbul.server.yml  _mocha -- --opts test/server/mocha.opts test/server/spec",
     "builder:check": "npm run builder:lint && npm run builder:test",
-    "builder:check-ci": "npm run builder:lint && npm run builder:test-cov"
+    "builder:check-ci": "npm run builder:lint && npm run builder:test-cov",
+    "builder:build": "doctoc --notitle README.md"
   },
   "dependencies": {
     "async": "^1.5.0",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "chai": "^3.4.1",
     "coveralls": "^2.11.6",
+    "doctoc": "^1.2.0",
     "eslint": "^1.10.1",
     "eslint-config-defaults": "^7.0.1",
     "eslint-plugin-filenames": "^0.1.2",
