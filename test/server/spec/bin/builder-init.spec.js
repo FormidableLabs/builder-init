@@ -457,6 +457,44 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("allows derived data for template file names", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            varName: { message: "a variable name" }
+          },
+          derived: {
+            upperFileName: "REPLACE_WITH_FN_TOKEN"
+          }
+
+        // Hack in a real function (while otherwise still using json stringification).
+
+        }).replace("\"REPLACE_WITH_FN_TOKEN\"",
+        /*eslint-disable no-extra-parens*/(function (data, cb) {
+          cb(null, data.fileName.toUpperCase());
+        }).toString())/* eslint-enable no-extra-parens */ + ";",
+        "init": {
+          "{{upperFileName}}.js": "module.exports = { <%= varName %>: 'foo' };"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("file_name")
+        .onCall(1).yields("myCoolVar")
+        .onCall(2).yields("dest");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        if (err) { return done(err); }
+
+        expect(base.fileRead("dest/FILE_NAME.js")).to.contain("myCoolVar: 'foo'");
+
+        done();
+      });
+    }));
+
     it("adds archetype prod/dev package.json", stdioWrap(function (done) {
       var stubs = mockFlow({
         "package.json": JSON.stringify({
