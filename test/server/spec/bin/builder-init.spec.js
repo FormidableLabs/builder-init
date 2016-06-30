@@ -108,7 +108,7 @@ describe("bin/builder-init", function () {
         return require(mod); // eslint-disable-line global-require
       } catch (err) {
         if (err.code === "MODULE_NOT_FOUND" && base.fileExists(mod)) {
-          return _eval(base.fileRead(mod));
+          return _eval(base.fileRead(mod), true);
         }
 
         throw err;
@@ -469,7 +469,6 @@ describe("bin/builder-init", function () {
           }
 
         // Hack in a real function (while otherwise still using json stringification).
-
         }).replace("\"REPLACE_WITH_FN_TOKEN\"",
         /*eslint-disable no-extra-parens*/(function (data, cb) {
           cb(null, data.fileName.toUpperCase());
@@ -490,6 +489,53 @@ describe("bin/builder-init", function () {
         if (err) { return done(err); }
 
         expect(base.fileRead("dest/FILE_NAME.js")).to.contain("myCoolVar: 'foo'");
+
+        done();
+      });
+    }));
+
+    // Verifies that `init.js`-based `require`'s are not supported and properly
+    // error-ed out with a good message.
+    //
+    // https://github.com/FormidableLabs/builder-init/issues/32
+    it("fails on missing requires in init.js", stdioWrap(function (done) {
+      // Update stub to just throw a `MODULE_NOT_FOUND` so that we can simulate
+      // a missing `require`.
+      //
+      // Note that while `eval` _does_ correctly error on bad require, the
+      // errors are uncatchable in our test execution context here. :(
+      Task.prototype._lazyRequire.restore();
+      base.sandbox.stub(Task.prototype, "_lazyRequire", function () {
+        // Hack a _real_ module not found error.
+        require("this-totally-doesnt-exist"); // eslint-disable-line global-require
+      });
+
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            fileName: { message: "a file name" },
+            varName: { message: "a variable name" }
+          }
+        }) + ";",
+        "init": {
+          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("file_name")
+        .onCall(1).yields("myCoolVar")
+        .onCall(2).yields("dest");
+
+      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+        expect(err)
+          .to.be.ok.and
+          .to.have.property("message").and
+            .to.contain("Cannot find module").and
+            .to.contain("this-totally-doesnt-exist").and
+            .to.contain("[builder-init] Error while importing");
 
         done();
       });
