@@ -7,6 +7,11 @@ History
 * XXX
 -->
 
+## 0.2.4
+
+* Add better documentation / error messages for `require()`'s in `init.js`.
+  [#32](https://github.com/FormidableLabs/builder-init/issues/32)
+
 ## 0.2.3
 
 * Add support for `{{eslintrc}}` derived file template.
