@@ -29,7 +29,7 @@
     "async": "^1.5.0",
     "chalk": "^1.1.1",
     "file-type": "^3.7.0",
-    "fs-extra": "^0.26.3",
+    "fs-extra": "^0.30.0",
     "gitignore-parser": "0.0.2",
     "inquirer": "^0.11.1",
     "isbinaryfile": "^3.0.0",
@@ -48,7 +48,7 @@
     "eval": "^0.1.1",
     "istanbul": "^0.4.1",
     "mocha": "^2.3.4",
-    "mock-fs": "^3.6.0",
+    "mock-fs": "3.10.0",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0"
   }
