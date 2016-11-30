@@ -32,7 +32,7 @@ var run = module.exports = function (opts, callback) {
   async.auto({
     download: task.execute.bind(task),
 
-    prompts: ["download", function (cb, results) {
+    prompts: ["download", function (results, cb) {
       process.stdout.write(
         bin + " Preparing templates for: " + chalk.magenta(task.archName) + "\n"
       );
@@ -40,7 +40,7 @@ var run = module.exports = function (opts, callback) {
       prompts(results.download.init, cb);
     }],
 
-    templates: ["prompts", function (cb, results) {
+    templates: ["prompts", function (results, cb) {
       if (!results.prompts.destination) {
         return void cb(new Error("Destination field missing from prompts"));
       }
