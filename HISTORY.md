@@ -1,11 +1,9 @@
 History
 =======
 
-<!--
-## Current
+## Unreleased
 
-* XXX
--->
+* Update lint, build, publish infrastructure.
 
 ## 0.2.4
 
