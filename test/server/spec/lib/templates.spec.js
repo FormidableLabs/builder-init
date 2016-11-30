@@ -69,7 +69,7 @@ describe("lib/templates", function () {
     var expectFn = function (input, expected) {
       return function (cb) {
         processTemplate(input, function (err, actual) {
-          if (err) { return cb(err); }
+          if (err) { return void cb(err); }
 
           expect(actual).to.deep.equal(_.extend({}, actual, expected));
 
@@ -106,7 +106,7 @@ describe("lib/templates", function () {
         dest: "foo",
         buffer: base.fixtures["formidagon.tmpl.svg"]
       }, function (err, data) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(data).to.have.property("content")
           .that.contains("fill:#003399;").and
@@ -227,7 +227,7 @@ describe("lib/templates", function () {
 
       it("ignores .gitignore'd files", function (done) {
         process(function (err) {
-          if (err) { return done(err); }
+          if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
           expect(base.fileRead("dest/COPY.txt")).to.equal("Should be copied");
@@ -263,7 +263,7 @@ describe("lib/templates", function () {
 
       it("ignores .gitignore'd files", function (done) {
         process(function (err) {
-          if (err) { return done(err); }
+          if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
           expect(base.fileRead("dest/COPY.txt")).to.equal("Should be copied");
@@ -295,7 +295,7 @@ describe("lib/templates", function () {
 
       it("supports .eslintrc file template", function (done) {
         process(function (err) {
-          if (err) { return done(err); }
+          if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.eslintrc")).to.equal("---");
           done();
@@ -381,7 +381,7 @@ describe("lib/templates", function () {
         };
 
         process(function (err) {
-          if (err) { return done(err); }
+          if (err) { return void done(err); }
 
           expect(base.fileRead("basic-dest/README.md")).to.contain("Basic Tests");
           expect(base.fileRead("basic-dest/the-textz.md")).to.contain("Billy");

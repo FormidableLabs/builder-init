@@ -68,7 +68,7 @@ before(function (done) {
     "formidagon.tmpl.svg"
   ], function (fixtureName, cb) {
     fs.readFile(path.join(__dirname, "../fixtures", fixtureName), function (err, buffer) {
-      if (err) { return cb(err); }
+      if (err) { return void cb(err); }
       base.fixtures[fixtureName] = buffer;
       cb();
     });

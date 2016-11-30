@@ -1,6 +1,6 @@
 ---
 extends:
-  - "defaults/configurations/walmart/es5-node"
+  - "formidable/configurations/es5-node"
 
 env:
   mocha: true
@@ -11,3 +11,4 @@ globals:
 rules:
   no-unused-expressions: 0  # Disable for Chai expression assertions.
   max-nested-callbacks: 0   # Disable for nested describes.
+  no-magic-numbers: 0

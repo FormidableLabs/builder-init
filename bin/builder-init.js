@@ -25,7 +25,7 @@ var run = module.exports = function (opts, callback) {
 
   // Help, version, etc. - just call straight up.
   if (!task.isInit()) {
-    return task.execute(callback);
+    return void task.execute(callback);
   }
 
   // Actual initialization.
@@ -42,7 +42,7 @@ var run = module.exports = function (opts, callback) {
 
     templates: ["prompts", function (cb, results) {
       if (!results.prompts.destination) {
-        return cb(new Error("Destination field missing from prompts"));
+        return void cb(new Error("Destination field missing from prompts"));
       }
 
       var templates = new Templates({
@@ -54,7 +54,7 @@ var run = module.exports = function (opts, callback) {
       });
 
       templates.process(function (err, outFiles) {
-        if (err) { return cb(err); }
+        if (err) { return void cb(err); }
 
         process.stdout.write(
           "\n" + bin + " Wrote files: \n" +

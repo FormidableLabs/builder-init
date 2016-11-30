@@ -42,7 +42,7 @@ var promptsWithData = function (init, setupFn, assertFn) {
   return function (cb) {
     setupFn();
     prompts(init, function (err, data) {
-      if (err) { return cb(err); }
+      if (err) { return void cb(err); }
       assertFn(data);
       cb();
     });
@@ -127,7 +127,7 @@ describe("lib/prompts", function () {
         destination: "destination",
         name: "Bob"
       }),
-      prompts: { name: { message: "Name" }}
+      prompts: { name: { message: "Name" } }
     }, function (data) {
       expect(runStub).to.not.be.called;
       expect(data).to.deep.equal(addDefaults({ name: "Bob" }));

@@ -47,7 +47,7 @@ describe("lib/task", function () {
       base.sandbox.spy(Task.prototype, "help");
       var task = new Task({ argv: ["node", "builder-init", "--help"] });
       task.execute(function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
         expect(task.help).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and
@@ -66,7 +66,7 @@ describe("lib/task", function () {
       base.sandbox.spy(Task.prototype, "version");
       var task = new Task({ argv: ["node", "builder-init", "-v"] });
       task.execute(function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
         expect(task.version).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and

@@ -35,9 +35,9 @@ var stdioWrap = function (fn) {
     };
 
     try {
-      return fn(_done);
+      return void fn(_done);
     } catch (err) {
-      return _done(err);
+      return void _done(err);
     }
   };
 };
@@ -120,7 +120,7 @@ describe("bin/builder-init", function () {
 
     it("displays help on no args", stdioWrap(function (done) {
       run({ argv: ["node", "builder-init"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
 
@@ -130,7 +130,7 @@ describe("bin/builder-init", function () {
 
     it("displays help on -h", stdioWrap(function (done) {
       run({ argv: ["node", "builder-init", "-h"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
 
@@ -140,7 +140,7 @@ describe("bin/builder-init", function () {
 
     it("displays version on -v", stdioWrap(function (done) {
       run({ argv: ["node", "builder-init", "-v"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch(pkg.version);
 
@@ -321,7 +321,7 @@ describe("bin/builder-init", function () {
         .onCall(2).yields("dest");
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
         expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
@@ -350,7 +350,7 @@ describe("bin/builder-init", function () {
       });
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
 
@@ -383,7 +383,7 @@ describe("bin/builder-init", function () {
         .onCall(2).yields("moar messages");
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
 
@@ -441,7 +441,7 @@ describe("bin/builder-init", function () {
         .onCall(2).yields("dest");
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/.npmignore")).to.contain("coverage");
         expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
@@ -486,7 +486,7 @@ describe("bin/builder-init", function () {
         .onCall(2).yields("dest");
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/FILE_NAME.js")).to.contain("myCoolVar: 'foo'");
 
@@ -581,7 +581,7 @@ describe("bin/builder-init", function () {
         .onCall(2).yields("dest");
 
       run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/README.md")).to.contain("My readme");
         expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
@@ -611,7 +611,7 @@ describe("bin/builder-init", function () {
       }) + "'";
 
       run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
 
@@ -646,7 +646,7 @@ describe("bin/builder-init", function () {
       }) + "'";
 
       run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
 
         expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
         expect(base.fileRead("dest/package.json")).to.contain("\"mock-archetype\": \"^0.1.2\"");
