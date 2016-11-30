@@ -148,7 +148,11 @@ describe("lib/prompts", function () {
       }),
       promptsWithData({
         derived: {
-          deferred: function (data, cb) { _.defer(cb.bind(null, null, "foo")); }
+          deferred: function (data, cb) {
+            // Defer, then advance faked time.
+            _.defer(cb, null, "foo");
+            base.sandbox.clock.tick(1);
+          }
         }
       }, function (data) {
         expect(data).to.deep.equal(addDefaults({ deferred: "foo" }));
