@@ -10,6 +10,8 @@ var prompts = require("../lib/prompts");
 var Templates = require("../lib/templates");
 var Task = require("../lib/task");
 
+var SCRIPT = "builder-init";
+
 /**
  * Script runner
  *
@@ -21,7 +23,7 @@ var Task = require("../lib/task");
  */
 var run = module.exports = function (opts, callback) {
   var task = new Task(opts);
-  var bin = chalk.green.bold("[builder-init]");
+  var bin = chalk.green.bold("[" + SCRIPT + "]");
 
   // Help, version, etc. - just call straight up.
   if (!task.isInit()) {
@@ -34,7 +36,7 @@ var run = module.exports = function (opts, callback) {
 
     prompts: ["download", function (results, cb) {
       process.stdout.write(
-        bin + " Preparing templates for: " + chalk.magenta(task.archName) + "\n"
+        bin + " Preparing templates for: " + chalk.magenta(task.modName) + "\n"
       );
 
       prompts(results.download.init, cb);
@@ -49,7 +51,7 @@ var run = module.exports = function (opts, callback) {
         src: results.download.src,
         dest: path.resolve(results.prompts.destination),
         data: _.extend({
-          archetype: results.download.archetype
+          archetype: results.download.archetype // TODO: ABSTRACT
         }, results.prompts)
       });
 
@@ -69,7 +71,7 @@ var run = module.exports = function (opts, callback) {
   }, function (err, results) {
     if (!err) {
       process.stdout.write(
-        "\n" + bin + " New " + chalk.magenta(task.archName) + " project is ready at: " +
+        "\n" + bin + " New " + chalk.magenta(task.modName) + " project is ready at: " +
         chalk.cyan(path.relative(process.cwd(), results.prompts.destination)) + "\n"
       );
     }
@@ -79,7 +81,7 @@ var run = module.exports = function (opts, callback) {
 };
 
 if (require.main === module) {
-  run(null, function (err) {
+  run({ script: SCRIPT }, function (err) {
     // TODO: REAL LOGGING
     // https://github.com/FormidableLabs/builder-init/issues/4
     if (err) {

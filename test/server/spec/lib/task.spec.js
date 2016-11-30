@@ -51,7 +51,7 @@ describe("lib/task", function () {
         expect(task.help).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and
-          .to.be.calledWithMatch("builder-init [flags] <archetype>");
+          .to.be.calledWithMatch("builder-init [flags] <module>");
 
         done();
       });
@@ -80,7 +80,7 @@ describe("lib/task", function () {
 
   describe("#init", function () {
 
-    it("displys help if no archetype specified", function (done) {
+    it("displys help if no module specified", function (done) {
       base.sandbox.stub(Task.prototype, "help").yields();
       var task = new Task({ argv: ["node", "builder-init"] });
       task.execute(function () {
@@ -90,10 +90,10 @@ describe("lib/task", function () {
       });
     });
 
-    it("fails if 2 archetypes specified", function (done) {
+    it("fails if 2 module specified", function (done) {
       var task = new Task({ argv: ["node", "builder-init", "one", "two"] });
       task.execute(function (err) {
-        expect(err).to.have.property("message").to.contain("Found 2 archetypes");
+        expect(err).to.have.property("message").to.contain("Found 2 modules");
         done();
       });
     });

@@ -122,7 +122,7 @@ describe("bin/builder-init", function () {
       run({ argv: ["node", "builder-init"] }, function (err) {
         if (err) { return void done(err); }
 
-        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
+        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <module>");
 
         done();
       });
@@ -132,7 +132,7 @@ describe("bin/builder-init", function () {
       run({ argv: ["node", "builder-init", "-h"] }, function (err) {
         if (err) { return void done(err); }
 
-        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <archetype>");
+        expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <module>");
 
         done();
       });
