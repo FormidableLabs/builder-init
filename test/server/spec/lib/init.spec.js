@@ -16,7 +16,7 @@ var _ = require("lodash");
 var Prompt = require("inquirer/lib/prompts/base");
 var _eval = require("eval");
 
-var run = require("../../../../bin/builder-init");
+var init = require("../../../../lib/init");
 var Task = require("../../../../lib/task");
 var pkg = require("../../../../package.json");
 
@@ -119,7 +119,7 @@ describe("bin/builder-init", function () {
   describe("non-init", function () {
 
     it("displays help on no args", stdioWrap(function (done) {
-      run({ argv: ["node", "builder-init"] }, function (err) {
+      init({ argv: ["node", "builder-init"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <module>");
@@ -129,7 +129,7 @@ describe("bin/builder-init", function () {
     }));
 
     it("displays help on -h", stdioWrap(function (done) {
-      run({ argv: ["node", "builder-init", "-h"] }, function (err) {
+      init({ argv: ["node", "builder-init", "-h"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch("builder-init [flags] <module>");
@@ -139,7 +139,7 @@ describe("bin/builder-init", function () {
     }));
 
     it("displays version on -v", stdioWrap(function (done) {
-      run({ argv: ["node", "builder-init", "-v"] }, function (err) {
+      init({ argv: ["node", "builder-init", "-v"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(process.stdout.write).to.be.calledWithMatch(pkg.version);
@@ -154,7 +154,7 @@ describe("bin/builder-init", function () {
 
     it("errors on missing init/ and no init.js", stdioWrap(function (done) {
       mockFlow({});
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message").that.contains("init' directory not found");
         done();
       });
@@ -164,7 +164,7 @@ describe("bin/builder-init", function () {
       mockFlow({
         "init.js": "module.exports = {};"
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message").that.contains("init' directory not found");
         done();
       });
@@ -174,7 +174,7 @@ describe("bin/builder-init", function () {
       mockFlow({
         "init": "file, not a directory"
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message").that.contains("exists, but is not a directory");
         done();
       });
@@ -187,7 +187,7 @@ describe("bin/builder-init", function () {
         "dest": {} // Will collide with default destination.
       });
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message").that.contains("dest already exists");
         done();
       });
@@ -203,7 +203,7 @@ describe("bin/builder-init", function () {
       stubs.spawnOn.withArgs("error").returns();
       stubs.spawnOn.withArgs("close").yields(1);
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message").that.contains("exited with error code: 1");
         done();
       });
@@ -220,7 +220,7 @@ describe("bin/builder-init", function () {
           "{{name}}.txt": "A <%= name %>."
         }
       });
-      run({ argv: ["node", "builder-init", "archetype", "--prompts=INVALID"] }, function (err) {
+      init({ argv: ["node", "builder-init", "archetype", "--prompts=INVALID"] }, function (err) {
         expect(err).to.have.property("message").that.contains("Prompt overrides loading failed");
         done();
       });
@@ -233,7 +233,7 @@ describe("bin/builder-init", function () {
           "{{name}}.txt": "A <%= name %>."
         }
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("[builder-init] Error while importing 'mock-archetype/init.js'").and
           .that.contains("Unexpected token {");
@@ -252,7 +252,7 @@ describe("bin/builder-init", function () {
           "{{npmignore}}": ""
         }
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 1 file path conflict").and
           .that.contains("npmignore");
@@ -268,7 +268,7 @@ describe("bin/builder-init", function () {
           "{{gitignore}}": ""
         }
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 1 file path conflict").and
           .that.contains("gitignore");
@@ -286,7 +286,7 @@ describe("bin/builder-init", function () {
           "{{npmignore}}": ""
         }
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 2 file path conflicts").and
           .that.contains("gitignore").and
@@ -320,7 +320,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
@@ -339,7 +339,7 @@ describe("bin/builder-init", function () {
       mockFlow({
         "init": {}
       });
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, done);
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, done);
     }));
 
     it("allows no init.js with init/", stdioWrap(function (done) {
@@ -349,7 +349,7 @@ describe("bin/builder-init", function () {
         }
       });
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
@@ -382,7 +382,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("#993300")
         .onCall(2).yields("moar messages");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
@@ -440,7 +440,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/.npmignore")).to.contain("coverage");
@@ -485,7 +485,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/FILE_NAME.js")).to.contain("myCoolVar: 'foo'");
@@ -529,7 +529,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         expect(err)
           .to.be.ok.and
           .to.have.property("message").and
@@ -580,7 +580,7 @@ describe("bin/builder-init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      run({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
+      init({ argv: ["node", "builder-init", "mock-archetype"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/README.md")).to.contain("My readme");
@@ -610,7 +610,7 @@ describe("bin/builder-init", function () {
         destination: "dest"
       }) + "'";
 
-      run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
+      init({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
@@ -645,7 +645,7 @@ describe("bin/builder-init", function () {
         destination: "dest"
       }) + "'";
 
-      run({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
+      init({ argv: ["node", "builder-init", "archetype", prompts] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
