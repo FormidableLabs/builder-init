@@ -132,6 +132,8 @@ archetype source:
   [`builder-react-component/blob/master/init.js`](https://github.com/FormidableLabs/builder-react-component/blob/master/init.js)
 * **`init/`**: A directory of templates to inflate during initialization. See, e.g.,
   [`builder-react-component/blob/master/init/`](https://github.com/FormidableLabs/builder-react-component/blob/master/init)
+  This directory can be configured with user prompts / data by setting the
+  special `_templatesDir` variable to something different than `"init"`.
 
 For example, in `builder-react-component`, we have a control file and templates
 as follows:
@@ -154,8 +156,8 @@ init/
   test/client/main.js
   test/client/spec/components/{{componentPath}}.spec.jsx
   test/client/test.html
-  {{gitignore}}
-  {{npmignore}}
+  {{_gitignore}}
+  {{_npmignore}}
 ```
 
 ### Archetype Data
@@ -296,11 +298,11 @@ derived: {
 
 **The Problem**
 
-The `.npmrc`, `.npmignore`, and `.gitignore` files in an `init/` templates
-directory are critical to the correct publishing / git lifecycle of a created
-project. However, publishing `init/` to npm as part of publishing the archetype
-and even initializing off of a local file path via `npm pack` does not work well
-with the basic layout of:
+Special files like `.npmrc`, `.npmignore`, and `.gitignore` in an `init/`
+templates directory are critical to the correct publishing / git lifecycle of a
+created project. However, publishing `init/` to npm as part of publishing the
+archetype and even initializing off of a local file path via `npm pack` does not
+work well with the basic layout of:
 
 ```
 init/
@@ -341,20 +343,20 @@ find a `.npmignore` on publishing or `npm pack` it will rename `.gitignore` to
 To address this, we have special `derived` values built in by default to
 `builder-init`. You do _not_ need to add them to your `init.js`:
 
-* `{{gitignore}}` -> `.gitignore`
-* `{{npmignore}}` -> `.npmignore`
-* `{{npmrc}}` -> `.npmrc`
-* `{{eslintrc}}` -> `.eslintrc`
+* `{{_gitignore}}` -> `.gitignore`
+* `{{_npmignore}}` -> `.npmignore`
+* `{{_npmrc}}` -> `.npmrc`
+* `{{_eslintrc}}` -> `.eslintrc`
 
 In your archetype `init` directory you should add any / none of these files
 with the following names instead of their real ones:
 
 ```
 init/
-  {{gitignore}}
-  {{npmignore}}
-  {{npmrc}}
-  {{eslintrc}}
+  {{_gitignore}}
+  {{_npmignore}}
+  {{_npmrc}}
+  {{_eslintrc}}
 ```
 
 As a side note for your git usage, this now means that `init/.gitignore` doesn't
@@ -394,17 +396,23 @@ In your template content.
 
 ### Templates Directory Ingestion
 
-`builder-init` mostly just walks the `init/` directory of an archetype looking
+As a preliminary matter, `init/` is the out-of-the box templates directory
+default for a special prompts variable `_templatesDir`. You can override this in
+an `init.js` either via `prompts` (allowing a user to pick a value) or `derived`
+data. Either of these approaches can choose 1+ different directories to find
+templates than the default `init/`.
+
+`builder-init` mostly just walks the templates directory of an archetype looking
 for any files with the following features:
 
-* An empty / non-existent `init/` directory is allowed, although nothing will
-  be written out.
-* If an `init/.gitignore` file is found, the files matched in the templates
-  directory will be filtered to ignore any `.gitignore` glob matches. This
-  filtering is done at _load_ time before file name template strings are
+* An empty templates directory is permitted, but a non-existent one will produce
+  an error.
+* If an `<_templatesDir>/.gitignore` file is found, the files matched in the
+  templates directory will be filtered to ignore any `.gitignore` glob matches.
+  This filtering is done at _load_ time before file name template strings are
   expanded (in case that matters).
 
-`builder-init` tries to intelligently determine if files in the `init/`
+`builder-init` tries to intelligently determine if files in the templates
 directory are actually text template files with the following heuristic:
 
 1. Inspect the magic numbers for known text files and opportunistically the

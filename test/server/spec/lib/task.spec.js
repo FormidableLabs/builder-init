@@ -1,8 +1,21 @@
 "use strict";
 
+var _ = require("lodash");
 var Task = require("../../../../lib/task");
-var pkg = require("../../../../package.json");
+var createTask = function (opts) {
+  return new Task(_.merge({
+    initFile: "my-prompts.js",
+    prompts: {
+      derived: {
+        _templatesDir: function (data, cb) { cb(null, "my-dir"); }
+      }
+    }
+  }, opts));
+};
+
 var base = require("../base.spec");
+
+var SCRIPT = "my-template-engine";
 
 describe("lib/task", function () {
 
@@ -10,9 +23,9 @@ describe("lib/task", function () {
 
     it("selects help", function (done) {
       base.sandbox.stub(Task.prototype, "help").yields();
-      var task = new Task({ argv: ["node", "builder-init", "-h"] });
+      var task = createTask({ argv: ["node", SCRIPT, "-h"] });
       task.execute(function () {
-        expect(task.isInit()).to.be.false;
+        expect(task.isInflate()).to.be.false;
         expect(task.help).to.be.calledOnce;
         done();
       });
@@ -20,20 +33,20 @@ describe("lib/task", function () {
 
     it("selects version", function (done) {
       base.sandbox.stub(Task.prototype, "version").yields();
-      var task = new Task({ argv: ["node", "builder-init", "--version"] });
+      var task = createTask({ argv: ["node", SCRIPT, "--version"] });
       task.execute(function () {
-        expect(task.isInit()).to.be.false;
+        expect(task.isInflate()).to.be.false;
         expect(task.version).to.be.calledOnce;
         done();
       });
     });
 
-    it("selects init", function (done) {
-      base.sandbox.stub(Task.prototype, "init").yields();
-      var task = new Task({ argv: ["node", "builder-init", "foo-archetype"] });
+    it("selects isInflate", function (done) {
+      base.sandbox.stub(Task.prototype, "inflate").yields();
+      var task = createTask({ argv: ["node", SCRIPT, "foo-module"] });
       task.execute(function () {
-        expect(task.isInit()).to.be.true;
-        expect(task.init).to.be.calledOnce;
+        expect(task.isInflate()).to.be.true;
+        expect(task.inflate).to.be.calledOnce;
         done();
       });
     });
@@ -45,13 +58,13 @@ describe("lib/task", function () {
     it("displays help", function (done) {
       base.sandbox.stub(process.stdout, "write");
       base.sandbox.spy(Task.prototype, "help");
-      var task = new Task({ argv: ["node", "builder-init", "--help"] });
+      var task = createTask({ argv: ["node", SCRIPT, "--help"] });
       task.execute(function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
         expect(task.help).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and
-          .to.be.calledWithMatch("builder-init [flags] <archetype>");
+          .to.be.calledWithMatch(SCRIPT + " [flags] <module>");
 
         done();
       });
@@ -64,13 +77,13 @@ describe("lib/task", function () {
     it("displays version", function (done) {
       base.sandbox.stub(process.stdout, "write");
       base.sandbox.spy(Task.prototype, "version");
-      var task = new Task({ argv: ["node", "builder-init", "-v"] });
+      var task = createTask({ argv: ["node", SCRIPT, "-v"], version: "1.2.3" });
       task.execute(function (err) {
-        if (err) { return done(err); }
+        if (err) { return void done(err); }
         expect(task.version).to.be.calledOnce;
         expect(process.stdout.write)
           .to.be.calledOnce.and
-          .to.be.calledWithMatch(pkg.version);
+          .to.be.calledWithMatch("1.2.3");
 
         done();
       });
@@ -78,22 +91,22 @@ describe("lib/task", function () {
 
   });
 
-  describe("#init", function () {
+  describe("#inflate", function () {
 
-    it("displys help if no archetype specified", function (done) {
+    it("displys help if no module specified", function (done) {
       base.sandbox.stub(Task.prototype, "help").yields();
-      var task = new Task({ argv: ["node", "builder-init"] });
+      var task = createTask({ argv: ["node", SCRIPT] });
       task.execute(function () {
-        expect(task.isInit()).to.be.false;
+        expect(task.isInflate()).to.be.false;
         expect(task.help).to.be.calledOnce;
         done();
       });
     });
 
-    it("fails if 2 archetypes specified", function (done) {
-      var task = new Task({ argv: ["node", "builder-init", "one", "two"] });
+    it("fails if 2 module specified", function (done) {
+      var task = createTask({ argv: ["node", SCRIPT, "one", "two"] });
       task.execute(function (err) {
-        expect(err).to.have.property("message").to.contain("Found 2 archetypes");
+        expect(err).to.have.property("message").to.contain("Found 2 modules");
         done();
       });
     });

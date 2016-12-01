@@ -42,7 +42,7 @@ var promptsWithData = function (init, setupFn, assertFn) {
   return function (cb) {
     setupFn();
     prompts(init, function (err, data) {
-      if (err) { return cb(err); }
+      if (err) { return void cb(err); }
       assertFn(data);
       cb();
     });
@@ -127,7 +127,7 @@ describe("lib/prompts", function () {
         destination: "destination",
         name: "Bob"
       }),
-      prompts: { name: { message: "Name" }}
+      prompts: { name: { message: "Name" } }
     }, function (data) {
       expect(runStub).to.not.be.called;
       expect(data).to.deep.equal(addDefaults({ name: "Bob" }));
@@ -148,7 +148,11 @@ describe("lib/prompts", function () {
       }),
       promptsWithData({
         derived: {
-          deferred: function (data, cb) { _.defer(cb.bind(null, null, "foo")); }
+          deferred: function (data, cb) {
+            // Defer, then advance faked time.
+            _.defer(cb, null, "foo");
+            base.sandbox.clock.tick(1);
+          }
         }
       }, function (data) {
         expect(data).to.deep.equal(addDefaults({ deferred: "foo" }));
@@ -248,4 +252,23 @@ describe("lib/prompts", function () {
     })(done);
   });
 
+  it("chooses prompts over derived data keys", function (done) {
+    promptsWithData({
+      prompts: {
+        foo: { message: "The foo" }
+      },
+      derived: {
+        foo: function (data, cb) { cb(null, "derived"); }
+      }
+    }, function () {
+      runStub
+        .reset()
+        .onCall(0).yields("prompts")
+        .onCall(1).yields("destination");
+    }, function (data) {
+      expect(data).to.deep.equal(addDefaults({
+        foo: "prompts"
+      }));
+    })(done);
+  });
 });

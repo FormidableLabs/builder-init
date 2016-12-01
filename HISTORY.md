@@ -1,11 +1,12 @@
 History
 =======
 
-<!--
-## Current
+## Unreleased
 
-* XXX
--->
+* Add special `_templatesDir` prompt for specifying alternate templates
+  (`init/`) directory.
+  [#36](https://github.com/FormidableLabs/builder-init/issues/36)
+* Update lint, build, publish infrastructure.
 
 ## 0.2.4
 

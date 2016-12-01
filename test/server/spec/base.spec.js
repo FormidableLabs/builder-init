@@ -9,12 +9,19 @@
  * be run in a separate process from other types of tests.
  */
 var path = require("path");
+var stream = require("stream");
+
 var _ = require("lodash");
 var mockFs = require("mock-fs");
 var fs = require("fs-extra");
 var async = require("async");
 var sinon = require("sinon");
+var zlib = require("zlib");
+var _eval = require("eval");
+
+var Task = require("../../../lib/task");
 var prompts = require("../../../lib/prompts");
+
 
 // ----------------------------------------------------------------------------
 // Base helpers.
@@ -68,7 +75,7 @@ before(function (done) {
     "formidagon.tmpl.svg"
   ], function (fixtureName, cb) {
     fs.readFile(path.join(__dirname, "../fixtures", fixtureName), function (err, buffer) {
-      if (err) { return cb(err); }
+      if (err) { return void cb(err); }
       base.fixtures[fixtureName] = buffer;
       cb();
     });
@@ -85,6 +92,23 @@ beforeEach(function () {
   // Set up sandbox.
   base.sandbox = sinon.sandbox.create({
     useFakeTimers: true
+  });
+
+  // Mock out unzipping.
+  base.sandbox.stub(zlib, "createUnzip").returns(new stream.PassThrough());
+
+  // Node `4`+ can't `require` from the mocked filesystem, so hackily
+  // approximate here.
+  base.sandbox.stub(Task.prototype, "_lazyRequire", function (mod) {
+    try {
+      return require(mod); // eslint-disable-line global-require
+    } catch (err) {
+      if (err.code === "MODULE_NOT_FOUND" && base.fileExists(mod)) {
+        return _eval(base.fileRead(mod), true);
+      }
+
+      throw err;
+    }
   });
 });
 
