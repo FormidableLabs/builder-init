@@ -7,14 +7,6 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-var childProc = require("child_process");
-var crypto = require("crypto");
-var zlib = require("zlib");
-var stream = require("stream");
-var temp = require("temp").track();
-var _ = require("lodash");
-var Prompt = require("inquirer/lib/prompts/base");
-var _eval = require("eval");
 
 var init = require("../../../../lib/init");
 var Task = require("../../../../lib/task");
@@ -22,99 +14,11 @@ var pkg = require("../../../../package.json");
 
 var base = require("../base.spec");
 
-// Helpers
-// **Note**: It would be great to just stub stderr, stdout in beforeEach,
-// but then we don't get test output. So, we manually stub with this wrapper.
-var stdioWrap = function (fn) {
-  return function (done) {
-    base.sandbox.stub(process.stdout, "write");
-
-    var _done = function (err) {
-      process.stdout.write.restore();
-      done(err);
-    };
-
-    try {
-      return void fn(_done);
-    } catch (err) {
-      return void _done(err);
-    }
-  };
-};
-
-// Mock key I/O parts of the flow.
-/*eslint-disable max-statements*/
-var mockFlow = function (extracted, root) {
-  // Returned object.
-  var stubs = {};
-
-  // Fake filesystem for before and after (stubbed) extraction.
-  //
-  // **Note**: Don't use `_.merge()` with `Buffer` objects in the mock fs.
-  var hash = crypto.randomBytes(10).toString("hex");
-  var tmpDir = "tmp-dir-" + hash;
-  var fsObj = _.extend({}, root);
-  fsObj[tmpDir] = {
-    "mock-archetype-0.0.1.tgz": ""
-  };
-
-  var extractedObj = _.extend({}, root);
-  extractedObj[tmpDir] = {
-    "mock-archetype-0.0.1.tgz": ""
-  };
-  if (extracted) {
-    extractedObj[tmpDir].extracted = extracted;
-  }
-
-  base.mockFs(fsObj);
-
-  // Stub out creating a temp directory with a _known_ name.
-  base.sandbox.stub(temp, "mkdir").yields(null, tmpDir);
-
-  // Immediately call `close` with success exit.
-  stubs.spawnOn = base.sandbox.stub();
-  stubs.spawnOn.withArgs("error").returns();
-  stubs.spawnOn.withArgs("close").yields(0);
-
-  // Override the `npm pack` process to just fail / succeed.
-  stubs.spawn = base.sandbox.stub(childProc, "spawn").returns({
-    on: stubs.spawnOn
-  });
-
-  // Use our special hook to change the filesystem as if we expanded a
-  // real download.
-  base.sandbox.stub(Task.prototype, "_onExtracted", function (callback) {
-    base.mockFs(extractedObj);
-
-    return callback;
-  });
-
-  stubs.prompt = base.sandbox.stub(Prompt.prototype, "run").yields("dest");
-
-  return stubs;
-};
-/*eslint-enable max-statements*/
+var util = require("../../util")(base);
+var stdioWrap = util.stdioWrap;
+var mockFlow = util.mockFlow;
 
 describe("bin/builder-init", function () {
-
-  beforeEach(function () {
-    // Mock out unzipping.
-    base.sandbox.stub(zlib, "createUnzip").returns(new stream.PassThrough());
-
-    // Node `4`+ can't `require` from the mocked filesystem, so hackily
-    // approximate here.
-    base.sandbox.stub(Task.prototype, "_lazyRequire", function (mod) {
-      try {
-        return require(mod); // eslint-disable-line global-require
-      } catch (err) {
-        if (err.code === "MODULE_NOT_FOUND" && base.fileExists(mod)) {
-          return _eval(base.fileRead(mod), true);
-        }
-
-        throw err;
-      }
-    });
-  });
 
   describe("non-init", function () {
 
