@@ -2,10 +2,14 @@
 "use strict";
 
 var init = require("../lib/init");
+var pkg = require("../package.json");
+
+var run = module.exports = init;
 
 if (require.main === module) {
-  init({
-    script: "builder-init"
+  run({
+    script: "builder-init",
+    version: pkg.version
   }, function (err) {
     // TODO: REAL LOGGING
     // https://github.com/FormidableLabs/builder-init/issues/4
