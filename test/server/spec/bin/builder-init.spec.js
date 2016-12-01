@@ -7,10 +7,7 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-/* TODO
-var run = require("../../../../bin/builder-init");
-var Task = require("../../../../lib/task");
-var pkg = require("../../../../package.json");
+var init = require("../../../../bin/builder-init");
 
 var base = require("../base.spec");
 
@@ -19,8 +16,54 @@ var stdioWrap = util.stdioWrap;
 var mockFlow = util.mockFlow;
 
 var SCRIPT = "builder-init";
-*/
 
 describe("bin/builder-init", function () {
+
+  describe("errors", function () {
+
+    it("errors on missing init/ and no init.js", stdioWrap(function (done) {
+      mockFlow({});
+      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("init' directory not found");
+        done();
+      });
+    }));
+
+    it("errors on missing init/ with init.js", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "module.exports = {};"
+      });
+      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("init' directory not found");
+        done();
+      });
+    }));
+
+    it("errors on init/ not a directory", stdioWrap(function (done) {
+      mockFlow({
+        "init": "file, not a directory"
+      });
+      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("exists, but is not a directory");
+        done();
+      });
+    }));
+
+    it("errors on invalid init.js", stdioWrap(function (done) {
+      mockFlow({
+        "init.js": "BAD_CODE {",
+        "init": {
+          "{{name}}.txt": "A <%= name %>."
+        }
+      });
+      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+        expect(err).to.have.property("message")
+          .that.contains("[" + SCRIPT + "] Error while importing 'mock-archetype/init.js'").and
+          .that.contains("Unexpected token {");
+
+        done();
+      });
+    }));
+  });
 
 });

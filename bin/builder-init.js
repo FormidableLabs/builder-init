@@ -4,13 +4,17 @@
 var init = require("../lib/init");
 var pkg = require("../package.json");
 
-var run = module.exports = init;
+var run = module.exports = function (opts, callback) {
+  return init(Object.assign({
+    script: "builder-init",
+    version: pkg.version,
+    initFile: "init.js",
+    initDir: "init"
+  }, opts), callback);
+};
 
 if (require.main === module) {
-  run({
-    script: "builder-init",
-    version: pkg.version
-  }, function (err) {
+  run(null, function (err) {
     // TODO: REAL LOGGING
     // https://github.com/FormidableLabs/builder-init/issues/4
     if (err) {

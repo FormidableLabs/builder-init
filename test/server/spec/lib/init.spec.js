@@ -7,7 +7,14 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-var init = require("../../../../lib/init");
+var _init = require("../../../../lib/init");
+var init = function (opts, callback) {
+  return _init(Object.assign({
+    initFile: "my-prompts.js",
+    initDir: "my-dir"
+  }, opts), callback);
+};
+
 var Task = require("../../../../lib/task");
 
 var base = require("../base.spec");
@@ -56,29 +63,29 @@ describe("lib/init", function () {
 
   describe("errors", function () {
 
-    it("errors on missing init/ and no init.js", stdioWrap(function (done) {
+    it("errors on missing <initDir> and no <initFile>", stdioWrap(function (done) {
       mockFlow({});
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
-        expect(err).to.have.property("message").that.contains("init' directory not found");
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("my-dir' directory not found");
         done();
       });
     }));
 
-    it("errors on missing init/ with init.js", stdioWrap(function (done) {
+    it("errors on missing <initDir> with <initFile>", stdioWrap(function (done) {
       mockFlow({
-        "init.js": "module.exports = {};"
+        "my-prompts.js": "module.exports = {};"
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
-        expect(err).to.have.property("message").that.contains("init' directory not found");
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("my-dir' directory not found");
         done();
       });
     }));
 
-    it("errors on init/ not a directory", stdioWrap(function (done) {
+    it("errors on <initDir> not a directory", stdioWrap(function (done) {
       mockFlow({
-        "init": "file, not a directory"
+        "my-dir": "file, not a directory"
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message").that.contains("exists, but is not a directory");
         done();
       });
@@ -86,7 +93,7 @@ describe("lib/init", function () {
 
     it("errors when destination already exists", stdioWrap(function (done) {
       mockFlow({
-        "init": {}
+        "my-dir": {}
       }, {
         "dest": {} // Will collide with default destination.
       });
@@ -99,7 +106,7 @@ describe("lib/init", function () {
 
     it("errors on failed npm pack download", stdioWrap(function (done) {
       var stubs = mockFlow({
-        "init": {}
+        "my-dir": {}
       });
 
       // Fake npm pack download error.
@@ -115,16 +122,16 @@ describe("lib/init", function () {
 
     it("errors on invalid --prompts data", stdioWrap(function (done) {
       mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             name: { message: "a name" }
           }
         }) + ";",
-        "init": {
+        "my-dir": {
           "{{name}}.txt": "A <%= name %>."
         }
       });
-      init({ argv: ["node", SCRIPT, "archetype", "--prompts=INVALID"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module", "--prompts=INVALID"] }, function (err) {
         expect(err).to.have.property("message").that.contains("Prompt overrides loading failed");
         done();
       });
@@ -132,14 +139,14 @@ describe("lib/init", function () {
 
     it("errors on invalid init.js", stdioWrap(function (done) {
       mockFlow({
-        "init.js": "BAD_CODE {",
-        "init": {
+        "my-prompts.js": "BAD_CODE {",
+        "my-dir": {
           "{{name}}.txt": "A <%= name %>."
         }
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message")
-          .that.contains("[" + SCRIPT + "] Error while importing 'mock-archetype/init.js'").and
+          .that.contains("[" + SCRIPT + "] Error while importing 'mock-module/my-prompts.js'").and
           .that.contains("Unexpected token {");
 
         done();
@@ -151,12 +158,12 @@ describe("lib/init", function () {
 
     it("errors on .npmignore collision", stdioWrap(function (done) {
       mockFlow({
-        "init": {
+        "my-dir": {
           ".npmignore": "",
           "{{npmignore}}": ""
         }
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 1 file path conflict").and
           .that.contains("npmignore");
@@ -167,12 +174,12 @@ describe("lib/init", function () {
 
     it("errors on .gitignore collision", stdioWrap(function (done) {
       mockFlow({
-        "init": {
+        "my-dir": {
           ".gitignore": "",
           "{{gitignore}}": ""
         }
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 1 file path conflict").and
           .that.contains("gitignore");
@@ -183,14 +190,14 @@ describe("lib/init", function () {
 
     it("errors on .gitignore and .npmignore collisions", stdioWrap(function (done) {
       mockFlow({
-        "init": {
+        "my-dir": {
           ".gitignore": "",
           "{{gitignore}}": "",
           ".npmignore": "",
           "{{npmignore}}": ""
         }
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message")
           .that.contains("Encountered 2 file path conflicts").and
           .that.contains("gitignore").and
@@ -202,13 +209,13 @@ describe("lib/init", function () {
 
     it("expands .gitignore and excludes ignored files", stdioWrap(function (done) {
       var stubs = mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             fileName: { message: "a file name" },
             varName: { message: "a variable name" }
           }
         }) + ";",
-        "init": {
+        "my-dir": {
           "{{gitignore}}": "coverage",
           "coverage": {
             "a-file": "shouldn't be copied"
@@ -224,7 +231,7 @@ describe("lib/init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/.gitignore")).to.contain("coverage");

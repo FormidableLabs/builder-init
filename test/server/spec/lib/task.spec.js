@@ -1,6 +1,13 @@
 "use strict";
 
 var Task = require("../../../../lib/task");
+var createTask = function (opts) {
+  return new Task(Object.assign({
+    initFile: "my-prompts.js",
+    initDir: "my-dir"
+  }, opts));
+};
+
 var base = require("../base.spec");
 
 var SCRIPT = "my-template-engine";
@@ -11,7 +18,7 @@ describe("lib/task", function () {
 
     it("selects help", function (done) {
       base.sandbox.stub(Task.prototype, "help").yields();
-      var task = new Task({ argv: ["node", SCRIPT, "-h"] });
+      var task = createTask({ argv: ["node", SCRIPT, "-h"] });
       task.execute(function () {
         expect(task.isInflate()).to.be.false;
         expect(task.help).to.be.calledOnce;
@@ -21,7 +28,7 @@ describe("lib/task", function () {
 
     it("selects version", function (done) {
       base.sandbox.stub(Task.prototype, "version").yields();
-      var task = new Task({ argv: ["node", SCRIPT, "--version"] });
+      var task = createTask({ argv: ["node", SCRIPT, "--version"] });
       task.execute(function () {
         expect(task.isInflate()).to.be.false;
         expect(task.version).to.be.calledOnce;
@@ -31,7 +38,7 @@ describe("lib/task", function () {
 
     it("selects isInflate", function (done) {
       base.sandbox.stub(Task.prototype, "inflate").yields();
-      var task = new Task({ argv: ["node", SCRIPT, "foo-archetype"] });
+      var task = createTask({ argv: ["node", SCRIPT, "foo-archetype"] });
       task.execute(function () {
         expect(task.isInflate()).to.be.true;
         expect(task.inflate).to.be.calledOnce;
@@ -46,7 +53,7 @@ describe("lib/task", function () {
     it("displays help", function (done) {
       base.sandbox.stub(process.stdout, "write");
       base.sandbox.spy(Task.prototype, "help");
-      var task = new Task({ argv: ["node", SCRIPT, "--help"] });
+      var task = createTask({ argv: ["node", SCRIPT, "--help"] });
       task.execute(function (err) {
         if (err) { return void done(err); }
         expect(task.help).to.be.calledOnce;
@@ -65,7 +72,7 @@ describe("lib/task", function () {
     it("displays version", function (done) {
       base.sandbox.stub(process.stdout, "write");
       base.sandbox.spy(Task.prototype, "version");
-      var task = new Task({ argv: ["node", SCRIPT, "-v"], version: "1.2.3" });
+      var task = createTask({ argv: ["node", SCRIPT, "-v"], version: "1.2.3" });
       task.execute(function (err) {
         if (err) { return void done(err); }
         expect(task.version).to.be.calledOnce;
@@ -83,7 +90,7 @@ describe("lib/task", function () {
 
     it("displys help if no module specified", function (done) {
       base.sandbox.stub(Task.prototype, "help").yields();
-      var task = new Task({ argv: ["node", SCRIPT] });
+      var task = createTask({ argv: ["node", SCRIPT] });
       task.execute(function () {
         expect(task.isInflate()).to.be.false;
         expect(task.help).to.be.calledOnce;
@@ -92,7 +99,7 @@ describe("lib/task", function () {
     });
 
     it("fails if 2 module specified", function (done) {
-      var task = new Task({ argv: ["node", SCRIPT, "one", "two"] });
+      var task = createTask({ argv: ["node", SCRIPT, "one", "two"] });
       task.execute(function (err) {
         expect(err).to.have.property("message").to.contain("Found 2 modules");
         done();
