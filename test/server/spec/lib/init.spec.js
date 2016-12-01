@@ -7,9 +7,10 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
+var _ = require("lodash");
 var _init = require("../../../../lib/init");
 var init = function (opts, callback) {
-  return _init(Object.assign({
+  return _init(_.merge({
     initFile: "my-prompts.js",
     prompts: {
       derived: {

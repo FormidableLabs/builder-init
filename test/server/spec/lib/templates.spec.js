@@ -344,7 +344,7 @@ describe("lib/templates", function () {
 
       it("errors on missing data value", function (done) {
         // Data is missing `text`.
-        basicTemplates.data = Object.assign(basicTemplates.data, {
+        basicTemplates.data = _.merge(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           username: "Billy"
@@ -363,7 +363,7 @@ describe("lib/templates", function () {
 
       it("errors on file name expansion clash", function (done) {
         // `text` value clashes with real file.
-        basicTemplates.data = Object.assign(basicTemplates.data, {
+        basicTemplates.data = _.merge(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           text: "README",
@@ -383,7 +383,7 @@ describe("lib/templates", function () {
 
       it("writes out correct templates", function (done) {
         // Hack in valid data.
-        basicTemplates.data = Object.assign(basicTemplates.data, {
+        basicTemplates.data = _.merge(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           text: "the-textz",

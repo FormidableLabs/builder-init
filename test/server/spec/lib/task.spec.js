@@ -1,8 +1,9 @@
 "use strict";
 
+var _ = require("lodash");
 var Task = require("../../../../lib/task");
 var createTask = function (opts) {
-  return new Task(Object.assign({
+  return new Task(_.merge({
     initFile: "my-prompts.js",
     prompts: {
       derived: {

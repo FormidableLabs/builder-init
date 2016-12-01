@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 "use strict";
 
+var _ = require("lodash");
 var init = require("../lib/init");
 var pkg = require("../package.json");
 
 var run = module.exports = function (opts, callback) {
-  return init(Object.assign({
+  return init(_.merge({
     script: "builder-init",
     version: pkg.version,
     initFile: "init.js",
