@@ -13,7 +13,8 @@ var run = module.exports = function (opts, callback) {
     prompts: {
       derived: {
         // Legacy names before underscored lib naming.
-        // **Note**: Relies on `Object.assign` ordering.
+        // **Note**: Values from `lib/prompts.DEFAULTS` are resolved _before_
+        // these by the prompts logic.
         npmignore: function (data, cb) { cb(null, data._npmignore); },
         gitignore: function (data, cb) { cb(null, data._gitignore); },
         eslintrc: function (data, cb) { cb(null, data._eslintrc); },

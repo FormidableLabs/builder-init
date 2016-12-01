@@ -252,4 +252,23 @@ describe("lib/prompts", function () {
     })(done);
   });
 
+  it("chooses prompts over derived data keys", function (done) {
+    promptsWithData({
+      prompts: {
+        foo: { message: "The foo" }
+      },
+      derived: {
+        foo: function (data, cb) { cb(null, "derived"); }
+      }
+    }, function () {
+      runStub
+        .reset()
+        .onCall(0).yields("prompts")
+        .onCall(1).yields("destination");
+    }, function (data) {
+      expect(data).to.deep.equal(addDefaults({
+        foo: "prompts"
+      }));
+    })(done);
+  });
 });
