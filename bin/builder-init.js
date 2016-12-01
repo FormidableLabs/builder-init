@@ -9,7 +9,17 @@ var run = module.exports = function (opts, callback) {
     script: "builder-init",
     version: pkg.version,
     initFile: "init.js",
-    initDir: "init"
+    initDir: "init",
+    prompts: {
+      derived: {
+        // Legacy names before underscored lib naming.
+        // **Note**: Relies on `Object.assign` ordering.
+        npmignore: function (data, cb) { cb(null, data._npmignore); },
+        gitignore: function (data, cb) { cb(null, data._gitignore); },
+        eslintrc: function (data, cb) { cb(null, data._eslintrc); },
+        npmrc: function (data, cb) { cb(null, data._npmrc); }
+      }
+    }
   }, opts), callback);
 };
 

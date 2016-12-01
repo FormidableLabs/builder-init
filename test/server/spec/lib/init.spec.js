@@ -160,7 +160,7 @@ describe("lib/init", function () {
       mockFlow({
         "my-dir": {
           ".npmignore": "",
-          "{{npmignore}}": ""
+          "{{_npmignore}}": ""
         }
       });
       init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
@@ -176,7 +176,7 @@ describe("lib/init", function () {
       mockFlow({
         "my-dir": {
           ".gitignore": "",
-          "{{gitignore}}": ""
+          "{{_gitignore}}": ""
         }
       });
       init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
@@ -192,9 +192,9 @@ describe("lib/init", function () {
       mockFlow({
         "my-dir": {
           ".gitignore": "",
-          "{{gitignore}}": "",
+          "{{_gitignore}}": "",
           ".npmignore": "",
-          "{{npmignore}}": ""
+          "{{_npmignore}}": ""
         }
       });
       init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
@@ -216,7 +216,7 @@ describe("lib/init", function () {
           }
         }) + ";",
         "my-dir": {
-          "{{gitignore}}": "coverage",
+          "{{_gitignore}}": "coverage",
           "coverage": {
             "a-file": "shouldn't be copied"
           },

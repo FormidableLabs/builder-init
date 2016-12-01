@@ -245,7 +245,7 @@ describe("lib/templates", function () {
       beforeEach(function () {
         base.mockFs({
           "src": {
-            "{{gitignore}}": "coverage", // Use token name per our guidelines
+            "{{_gitignore}}": "coverage", // Use token name per our guidelines
             "COPY.txt": "Should be copied",
             coverage: {
               "NO_COPY.txt": "Should not be copied"
@@ -281,7 +281,7 @@ describe("lib/templates", function () {
       beforeEach(function () {
         base.mockFs({
           "src": {
-            "{{eslintrc}}": "---"  // Use token name per our guidelines
+            "{{_eslintrc}}": "---"  // Use token name per our guidelines
           }
         });
 
