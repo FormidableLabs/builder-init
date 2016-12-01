@@ -81,6 +81,21 @@ describe("lib/init", function () {
       });
     }));
 
+    it("errors on underscored prompts in <initFile>", stdioWrap(function (done) {
+      mockFlow({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            _fileName: { message: "a file name" }
+          }
+        }) + ";",
+        "my-dir": {}
+      });
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
+        expect(err).to.have.property("message").that.contains("User prompts cannot start with");
+        done();
+      });
+    }));
+
     it("errors on <initDir> not a directory", stdioWrap(function (done) {
       mockFlow({
         "my-dir": "file, not a directory"
