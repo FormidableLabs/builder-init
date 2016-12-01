@@ -154,8 +154,8 @@ init/
   test/client/main.js
   test/client/spec/components/{{componentPath}}.spec.jsx
   test/client/test.html
-  {{gitignore}}
-  {{npmignore}}
+  {{_gitignore}}
+  {{_npmignore}}
 ```
 
 ### Archetype Data
@@ -296,11 +296,11 @@ derived: {
 
 **The Problem**
 
-The `.npmrc`, `.npmignore`, and `.gitignore` files in an `init/` templates
-directory are critical to the correct publishing / git lifecycle of a created
-project. However, publishing `init/` to npm as part of publishing the archetype
-and even initializing off of a local file path via `npm pack` does not work well
-with the basic layout of:
+Special files like `.npmrc`, `.npmignore`, and `.gitignore` in an `init/`
+templates directory are critical to the correct publishing / git lifecycle of a
+created project. However, publishing `init/` to npm as part of publishing the
+archetype and even initializing off of a local file path via `npm pack` does not
+work well with the basic layout of:
 
 ```
 init/
@@ -341,20 +341,20 @@ find a `.npmignore` on publishing or `npm pack` it will rename `.gitignore` to
 To address this, we have special `derived` values built in by default to
 `builder-init`. You do _not_ need to add them to your `init.js`:
 
-* `{{gitignore}}` -> `.gitignore`
-* `{{npmignore}}` -> `.npmignore`
-* `{{npmrc}}` -> `.npmrc`
-* `{{eslintrc}}` -> `.eslintrc`
+* `{{_gitignore}}` -> `.gitignore`
+* `{{_npmignore}}` -> `.npmignore`
+* `{{_npmrc}}` -> `.npmrc`
+* `{{_eslintrc}}` -> `.eslintrc`
 
 In your archetype `init` directory you should add any / none of these files
 with the following names instead of their real ones:
 
 ```
 init/
-  {{gitignore}}
-  {{npmignore}}
-  {{npmrc}}
-  {{eslintrc}}
+  {{_gitignore}}
+  {{_npmignore}}
+  {{_npmrc}}
+  {{_eslintrc}}
 ```
 
 As a side note for your git usage, this now means that `init/.gitignore` doesn't
