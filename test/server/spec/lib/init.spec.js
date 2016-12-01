@@ -11,7 +11,11 @@ var _init = require("../../../../lib/init");
 var init = function (opts, callback) {
   return _init(Object.assign({
     initFile: "my-prompts.js",
-    initDir: "my-dir"
+    prompts: {
+      derived: {
+        _templatesDir: function (data, cb) { cb(null, "my-dir"); }
+      }
+    }
   }, opts), callback);
 };
 
@@ -63,7 +67,7 @@ describe("lib/init", function () {
 
   describe("errors", function () {
 
-    it("errors on missing <initDir> and no <initFile>", stdioWrap(function (done) {
+    it("errors on missing <_templatesDir> and no <initFile>", stdioWrap(function (done) {
       mockFlow({});
       init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message").that.contains("my-dir' directory not found");
@@ -71,7 +75,7 @@ describe("lib/init", function () {
       });
     }));
 
-    it("errors on missing <initDir> with <initFile>", stdioWrap(function (done) {
+    it("errors on missing <_templatesDir> with <initFile>", stdioWrap(function (done) {
       mockFlow({
         "my-prompts.js": "module.exports = {};"
       });
@@ -96,7 +100,7 @@ describe("lib/init", function () {
       });
     }));
 
-    it("errors on <initDir> not a directory", stdioWrap(function (done) {
+    it("errors on <_templatesDir> not a directory", stdioWrap(function (done) {
       mockFlow({
         "my-dir": "file, not a directory"
       });
@@ -261,14 +265,14 @@ describe("lib/init", function () {
 
   describe("basic", function () {
 
-    it("allows no <initFile> and empty <initDir>", stdioWrap(function (done) {
+    it("allows no <initFile> and empty <_templatesDir>", stdioWrap(function (done) {
       mockFlow({
         "my-dir": {}
       });
       init({ argv: ["node", SCRIPT, "mock-module"] }, done);
     }));
 
-    it("allows no <initFile> with <initDir>", stdioWrap(function (done) {
+    it("allows no <initFile> with <_templatesDir>", stdioWrap(function (done) {
       mockFlow({
         "my-dir": {
           "foo.js": "module.exports = { foo: 42 };"
@@ -279,6 +283,33 @@ describe("lib/init", function () {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
+
+        done();
+      });
+    }));
+
+    it("allows overriding templates dir", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            _templatesDir: { message: "new templates dir" }
+          }
+        }) + ";",
+        "different-tmpl": {
+          "README.md": "My readme"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("different-tmpl")
+        .onCall(1).yields("dest");
+
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
+        if (err) { return void done(err); }
+
+        expect(base.fileRead("dest/README.md")).to.contain("My readme");
 
         done();
       });

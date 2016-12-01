@@ -394,6 +394,9 @@ In your template content.
 
 ### Templates Directory Ingestion
 
+**TODO: Document `_templatesDir` and retrofit here
+https://github.com/FormidableLabs/builder-init/issues/22**
+
 `builder-init` mostly just walks the `init/` directory of an archetype looking
 for any files with the following features:
 

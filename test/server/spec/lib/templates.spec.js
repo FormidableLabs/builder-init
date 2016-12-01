@@ -65,10 +65,10 @@ describe("lib/templates", function () {
 
   describe("#processTemplate", function () {
     var instance;
-    var processTemplate;
+    var _processTemplate;
     var expectFn = function (input, expected) {
       return function (cb) {
-        processTemplate(input, function (err, actual) {
+        _processTemplate(input, function (err, actual) {
           if (err) { return void cb(err); }
 
           expect(actual).to.deep.equal(_.extend({}, actual, expected));
@@ -80,7 +80,7 @@ describe("lib/templates", function () {
 
     beforeEach(function () {
       instance = new Templates();
-      processTemplate = instance.processTemplate.bind(instance);
+      _processTemplate = instance.processTemplate.bind(instance);
     });
 
     it("handles non-parsed content", function (done) {
@@ -102,7 +102,7 @@ describe("lib/templates", function () {
     it("parses SVGs", function (done) {
       instance.data = { fillColor: "#003399", message: "I'm a logo" };
 
-      processTemplate({
+      _processTemplate({
         dest: "foo",
         buffer: base.fixtures["formidagon.tmpl.svg"]
       }, function (err, data) {
@@ -157,22 +157,26 @@ describe("lib/templates", function () {
   });
 
   describe("#process", function () {
-    var process;
+    var _process;
 
     describe("nonexistent templates directory", function () {
       var instance;
 
       beforeEach(function () {
         instance = new Templates({
-          src: "nonexistent-dir",
-          dest: "nonexistent-dir-dest"
+          src: "",
+          dest: "nonexistent-dir-dest",
+          data: {
+            _templatesDir: "nonexistent-dir"
+          }
         });
-        process = instance.process.bind(instance);
+        _process = instance.process.bind(instance);
       });
 
-      it("allows nonexistent directory", function (done) {
-        process(function (err) {
-          expect(err).to.not.be.ok;
+      it("forbids nonexistent templates directory", function (done) {
+        _process(function (err) {
+          expect(err).to.have.property("message")
+            .that.contains("nonexistent-dir' directory not found");
           done();
         });
       });
@@ -183,20 +187,23 @@ describe("lib/templates", function () {
 
       beforeEach(function () {
         base.mockFs({
-          "empty-dir": {
+          "extracted/empty-dir": {
             "another-empty-dir": {}
           }
         });
 
         instance = new Templates({
-          src: "empty-dir",
-          dest: "empty-dir-dest"
+          src: "",
+          dest: "empty-dir-dest",
+          data: {
+            _templatesDir: "empty-dir"
+          }
         });
-        process = instance.process.bind(instance);
+        _process = instance.process.bind(instance);
       });
 
       it("allows empty directory", function (done) {
-        process(function (err) {
+        _process(function (err) {
           expect(err).to.not.be.ok;
           done();
         });
@@ -208,7 +215,7 @@ describe("lib/templates", function () {
 
       beforeEach(function () {
         base.mockFs({
-          "src": {
+          "extracted/templates": {
             ".gitignore": "coverage",
             "COPY.txt": "Should be copied",
             coverage: {
@@ -218,15 +225,15 @@ describe("lib/templates", function () {
         });
 
         instance = new Templates({
-          src: "src",
+          src: "",
           dest: "dest",
           data: base.addPromptDefaults() // Always get these from prompts
         });
-        process = instance.process.bind(instance);
+        _process = instance.process.bind(instance);
       });
 
       it("ignores .gitignore'd files", function (done) {
-        process(function (err) {
+        _process(function (err) {
           if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
@@ -244,7 +251,7 @@ describe("lib/templates", function () {
 
       beforeEach(function () {
         base.mockFs({
-          "src": {
+          "extracted/templates": {
             "{{_gitignore}}": "coverage", // Use token name per our guidelines
             "COPY.txt": "Should be copied",
             coverage: {
@@ -254,15 +261,15 @@ describe("lib/templates", function () {
         });
 
         instance = new Templates({
-          src: "src",
+          src: "",
           dest: "dest",
           data: base.addPromptDefaults() // Always get these from prompts
         });
-        process = instance.process.bind(instance);
+        _process = instance.process.bind(instance);
       });
 
       it("ignores .gitignore'd files", function (done) {
-        process(function (err) {
+        _process(function (err) {
           if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.gitignore")).to.equal("coverage");
@@ -280,21 +287,21 @@ describe("lib/templates", function () {
 
       beforeEach(function () {
         base.mockFs({
-          "src": {
+          "extracted/templates": {
             "{{_eslintrc}}": "---"  // Use token name per our guidelines
           }
         });
 
         instance = new Templates({
-          src: "src",
+          src: "",
           dest: "dest",
           data: base.addPromptDefaults() // Always get these from prompts
         });
-        process = instance.process.bind(instance);
+        _process = instance.process.bind(instance);
       });
 
       it("supports .eslintrc file template", function (done) {
-        process(function (err) {
+        _process(function (err) {
           if (err) { return void done(err); }
 
           expect(base.fileRead("dest/.eslintrc")).to.equal("---");
@@ -309,7 +316,7 @@ describe("lib/templates", function () {
       beforeEach(function () {
         // Mock filesystem
         base.mockFs({
-          basic: {
+          "extracted/basic": {
             src: {
               "index.js": "var <%= codeName %> = require(\"./<%= code %>.js\");\n\n" +
                 "module.exports[<%= codeName %>] = <%= codeName %>;\n",
@@ -325,22 +332,25 @@ describe("lib/templates", function () {
 
         // Leave `data` empty for later hacking.
         basicTemplates = new Templates({
-          src: "basic",
-          dest: "basic-dest"
+          src: ".",
+          dest: "basic-dest",
+          data: {
+            _templatesDir: "basic"
+          }
         });
 
-        process = basicTemplates.process.bind(basicTemplates);
+        _process = basicTemplates.process.bind(basicTemplates);
       });
 
       it("errors on missing data value", function (done) {
         // Data is missing `text`.
-        basicTemplates.data = {
+        basicTemplates.data = Object.assign(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           username: "Billy"
-        };
+        });
 
-        process(function (err) {
+        _process(function (err) {
           expect(err)
             .to.be.ok.and
             .to.have.property("message").and
@@ -353,14 +363,14 @@ describe("lib/templates", function () {
 
       it("errors on file name expansion clash", function (done) {
         // `text` value clashes with real file.
-        basicTemplates.data = {
+        basicTemplates.data = Object.assign(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           text: "README",
           username: "Billy"
-        };
+        });
 
-        process(function (err) {
+        _process(function (err) {
           expect(err)
             .to.be.ok.and
             .to.have.property("message").and
@@ -373,14 +383,14 @@ describe("lib/templates", function () {
 
       it("writes out correct templates", function (done) {
         // Hack in valid data.
-        basicTemplates.data = {
+        basicTemplates.data = Object.assign(basicTemplates.data, {
           code: "the-codez",
           codeName: "TheCodez",
           text: "the-textz",
           username: "Billy"
-        };
+        });
 
-        process(function (err) {
+        _process(function (err) {
           if (err) { return void done(err); }
 
           expect(base.fileRead("basic-dest/README.md")).to.contain("Basic Tests");

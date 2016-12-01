@@ -4,7 +4,11 @@ var Task = require("../../../../lib/task");
 var createTask = function (opts) {
   return new Task(Object.assign({
     initFile: "my-prompts.js",
-    initDir: "my-dir"
+    prompts: {
+      derived: {
+        _templatesDir: function (data, cb) { cb(null, "my-dir"); }
+      }
+    }
   }, opts));
 };
 

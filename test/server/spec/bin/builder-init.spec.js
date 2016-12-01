@@ -92,6 +92,33 @@ describe("bin/builder-init", function () {
       });
     }));
 
+    it("allows overriding templates dir", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "init.js": "module.exports = " + JSON.stringify({
+          prompts: {
+            _templatesDir: { message: "new templates dir" }
+          }
+        }) + ";",
+        "different-tmpl": {
+          "README.md": "My readme"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
+        .onCall(0).yields("different-tmpl")
+        .onCall(1).yields("dest");
+
+      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+        if (err) { return void done(err); }
+
+        expect(base.fileRead("dest/README.md")).to.contain("My readme");
+
+        done();
+      });
+    }));
+
     it("adds archetype prod/dev package.json", stdioWrap(function (done) {
       var stubs = mockFlow({
         "package.json": JSON.stringify({
@@ -200,6 +227,7 @@ describe("bin/builder-init", function () {
         done();
       });
     }));
+
     it("handles --prompts data with 'archetype' field", stdioWrap(function (done) {
       mockFlow({
         "package.json": JSON.stringify({

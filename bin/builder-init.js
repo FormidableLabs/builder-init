@@ -9,9 +9,11 @@ var run = module.exports = function (opts, callback) {
     script: "builder-init",
     version: pkg.version,
     initFile: "init.js",
-    initDir: "init",
     prompts: {
       derived: {
+        // Directory containing templates
+        _templatesDir: function (data, cb) { cb(null, "init"); },
+
         // Legacy names before underscored lib naming.
         // **Note**: Values from `lib/prompts.DEFAULTS` are resolved _before_
         // these by the prompts logic.
