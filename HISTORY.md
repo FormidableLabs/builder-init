@@ -1,7 +1,7 @@
 History
 =======
 
-## Unreleased
+## 0.3.0
 
 * Add special `_templatesDir` prompt for specifying alternate templates
   (`init/`) directory.
