@@ -42,7 +42,7 @@ describe("lib/task", function () {
 
     it("selects isInflate", function (done) {
       base.sandbox.stub(Task.prototype, "inflate").yields();
-      var task = createTask({ argv: ["node", SCRIPT, "foo-archetype"] });
+      var task = createTask({ argv: ["node", SCRIPT, "foo-module"] });
       task.execute(function () {
         expect(task.isInflate()).to.be.true;
         expect(task.inflate).to.be.calledOnce;

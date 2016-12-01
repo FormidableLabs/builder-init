@@ -288,7 +288,7 @@ describe("lib/init", function () {
       });
     }));
 
-    it("allows overriding templates dir", stdioWrap(function (done) {
+    it("allows overriding <_templatesDir> via prompts", stdioWrap(function (done) {
       var stubs = mockFlow({
         "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
@@ -304,6 +304,36 @@ describe("lib/init", function () {
       stubs.prompt
         .reset()
         .onCall(0).yields("different-tmpl")
+        .onCall(1).yields("dest");
+
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
+        if (err) { return void done(err); }
+
+        expect(base.fileRead("dest/README.md")).to.contain("My readme");
+
+        done();
+      });
+    }));
+
+    it("allows overriding <_templatesDir> via derived", stdioWrap(function (done) {
+      var stubs = mockFlow({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
+          derived: {
+            _templatesDir: "REPLACE_WITH_FN_TOKEN"
+          }
+        // Hack in a real function (while otherwise still using json stringification).
+        }).replace("\"REPLACE_WITH_FN_TOKEN\"",
+        /*eslint-disable no-extra-parens*/(function (data, cb) {
+          cb(null, "different-tmpl");
+        }).toString())/* eslint-enable no-extra-parens */ + ";",
+        "different-tmpl": {
+          "README.md": "My readme"
+        }
+      });
+
+      // Note: These have to match prompt fields + `destination` in order.
+      stubs.prompt
+        .reset()
         .onCall(1).yields("dest");
 
       init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
