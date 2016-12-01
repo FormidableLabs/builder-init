@@ -98,7 +98,7 @@ describe("lib/init", function () {
         "dest": {} // Will collide with default destination.
       });
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message").that.contains("dest already exists");
         done();
       });
@@ -114,7 +114,7 @@ describe("lib/init", function () {
       stubs.spawnOn.withArgs("error").returns();
       stubs.spawnOn.withArgs("close").yields(1);
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err).to.have.property("message").that.contains("exited with error code: 1");
         done();
       });
@@ -137,7 +137,7 @@ describe("lib/init", function () {
       });
     }));
 
-    it("errors on invalid init.js", stdioWrap(function (done) {
+    it("errors on invalid <initFile>", stdioWrap(function (done) {
       mockFlow({
         "my-prompts.js": "BAD_CODE {",
         "my-dir": {
@@ -246,21 +246,21 @@ describe("lib/init", function () {
 
   describe("basic", function () {
 
-    it("allows no init.js and empty init/", stdioWrap(function (done) {
+    it("allows no <initFile> and empty <initDir>", stdioWrap(function (done) {
       mockFlow({
-        "init": {}
+        "my-dir": {}
       });
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, done);
+      init({ argv: ["node", SCRIPT, "mock-module"] }, done);
     }));
 
-    it("allows no init.js with init/", stdioWrap(function (done) {
+    it("allows no <initFile> with <initDir>", stdioWrap(function (done) {
       mockFlow({
-        "init": {
+        "my-dir": {
           "foo.js": "module.exports = { foo: 42 };"
         }
       });
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
@@ -271,14 +271,14 @@ describe("lib/init", function () {
 
     it("doesn't mutate binary data (png), but will parse SVGs", stdioWrap(function (done) {
       var stubs = mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             fileName: { message: "a file name" },
             fillColor: { message: "a SVG fill color" },
             message: { message: "a SVG fill message" }
           }
         }) + ";",
-        "init": {
+        "my-dir": {
           "foo.js": "module.exports = { foo: 42 };",
           "{{fileName}}.svg": base.fixtures["formidagon.svg"],
           "from-template.svg": base.fixtures["formidagon.tmpl.svg"],
@@ -293,7 +293,7 @@ describe("lib/init", function () {
         .onCall(1).yields("#993300")
         .onCall(2).yields("moar messages");
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/foo.js")).to.contain("foo: 42");
@@ -311,66 +311,9 @@ describe("lib/init", function () {
       });
     }));
 
-    it("initializes a basic project", stdioWrap(function (done) {
-      var stubs = mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
-          prompts: {
-            fileName: { message: "a file name" },
-            varName: { message: "a variable name" }
-          }
-        }) + ";",
-        "init": {
-          "{{npmignore}}": "coverage",
-          "{{gitignore}}": "coverage",
-          "README.md": "My readme",
-          "package.json": JSON.stringify({
-            dependencies: {
-              "mock-archetype":
-                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
-            },
-            devDependencies: {
-              "mock-archetype-dev":
-                "<%= archetype.devPackage.version ? '^' + archetype.devPackage.version : '*' %>"
-            }
-          }, null, 2),
-          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };",
-          "test": {
-            "client": {
-              "spec": {
-                "{{fileName}}.spec.js": "describe('<%= fileName %>');"
-              }
-            }
-          }
-        }
-      });
-
-      // Note: These have to match prompt fields + `destination` in order.
-      stubs.prompt
-        .reset()
-        .onCall(0).yields("file-name")
-        .onCall(1).yields("myCoolVar")
-        .onCall(2).yields("dest");
-
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
-        if (err) { return void done(err); }
-
-        expect(base.fileRead("dest/.npmignore")).to.contain("coverage");
-        expect(base.fileRead("dest/.gitignore")).to.contain("coverage");
-        expect(base.fileRead("dest/README.md")).to.contain("My readme");
-        expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
-        expect(base.fileRead("dest/test/client/spec/file-name.spec.js"))
-          .to.contain("describe('file-name');");
-        expect(base.fileRead("dest/package.json"))
-          .to.contain("\"mock-archetype\": \"*\"").and
-          .to.contain("\"mock-archetype-dev\": \"*\"");
-
-        done();
-      });
-    }));
-
     it("allows derived data for template file names", stdioWrap(function (done) {
       var stubs = mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             fileName: { message: "a file name" },
             varName: { message: "a variable name" }
@@ -384,7 +327,7 @@ describe("lib/init", function () {
         /*eslint-disable no-extra-parens*/(function (data, cb) {
           cb(null, data.fileName.toUpperCase());
         }).toString())/* eslint-enable no-extra-parens */ + ";",
-        "init": {
+        "my-dir": {
           "{{upperFileName}}.js": "module.exports = { <%= varName %>: 'foo' };"
         }
       });
@@ -396,7 +339,7 @@ describe("lib/init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/FILE_NAME.js")).to.contain("myCoolVar: 'foo'");
@@ -405,11 +348,11 @@ describe("lib/init", function () {
       });
     }));
 
-    // Verifies that `init.js`-based `require`'s are not supported and properly
+    // Verifies that `<initFile>`-based `require`'s are not supported and properly
     // error-ed out with a good message.
     //
     // https://github.com/FormidableLabs/builder-init/issues/32
-    it("fails on missing requires in init.js", stdioWrap(function (done) {
+    it("fails on missing requires in <initFile>", stdioWrap(function (done) {
       // Update stub to just throw a `MODULE_NOT_FOUND` so that we can simulate
       // a missing `require`.
       //
@@ -422,13 +365,13 @@ describe("lib/init", function () {
       });
 
       var stubs = mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             fileName: { message: "a file name" },
             varName: { message: "a variable name" }
           }
         }) + ";",
-        "init": {
+        "my-dir": {
           "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };"
         }
       });
@@ -440,7 +383,7 @@ describe("lib/init", function () {
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
 
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
+      init({ argv: ["node", SCRIPT, "mock-module"] }, function (err) {
         expect(err)
           .to.be.ok.and
           .to.have.property("message").and
@@ -452,66 +395,14 @@ describe("lib/init", function () {
       });
     }));
 
-    it("adds archetype prod/dev package.json", stdioWrap(function (done) {
-      var stubs = mockFlow({
-        "package.json": JSON.stringify({
-          version: "0.1.2"
-        }),
-        "dev": {
-          "package.json": JSON.stringify({
-            version: "0.1.1"
-          })
-        },
-        "init.js": "module.exports = " + JSON.stringify({
-          prompts: {
-            fileName: { message: "a file name" },
-            varName: { message: "a variable name" }
-          }
-        }) + ";",
-        "init": {
-          "README.md": "My readme",
-          "{{fileName}}.js": "module.exports = { <%= varName %>: 'foo' };",
-          "package.json": JSON.stringify({
-            dependencies: {
-              "mock-archetype":
-                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
-            },
-            devDependencies: {
-              "mock-archetype-dev":
-                "<%= archetype.devPackage.version ? '^' + archetype.devPackage.version : '*' %>"
-            }
-          }, null, 2)
-        }
-      });
-
-      // Note: These have to match prompt fields + `destination` in order.
-      stubs.prompt
-        .reset()
-        .onCall(0).yields("file-name")
-        .onCall(1).yields("myCoolVar")
-        .onCall(2).yields("dest");
-
-      init({ argv: ["node", SCRIPT, "mock-archetype"] }, function (err) {
-        if (err) { return void done(err); }
-
-        expect(base.fileRead("dest/README.md")).to.contain("My readme");
-        expect(base.fileRead("dest/file-name.js")).to.contain("myCoolVar: 'foo'");
-        expect(base.fileRead("dest/package.json"))
-          .to.contain("\"mock-archetype\": \"^0.1.2\"").and
-          .to.contain("\"mock-archetype-dev\": \"^0.1.1\"");
-
-        done();
-      });
-    }));
-
     it("handles --prompts data", stdioWrap(function (done) {
       mockFlow({
-        "init.js": "module.exports = " + JSON.stringify({
+        "my-prompts.js": "module.exports = " + JSON.stringify({
           prompts: {
             name: { message: "a name" }
           }
         }) + ";",
-        "init": {
+        "my-dir": {
           "{{name}}.txt": "A <%= _.capitalize(name) %>."
         }
       });
@@ -521,7 +412,7 @@ describe("lib/init", function () {
         destination: "dest"
       }) + "'";
 
-      init({ argv: ["node", SCRIPT, "archetype", prompts] }, function (err) {
+      init({ argv: ["node", SCRIPT, "module", prompts] }, function (err) {
         if (err) { return void done(err); }
 
         expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
@@ -530,41 +421,6 @@ describe("lib/init", function () {
       });
     }));
 
-    it("handles --prompts data with 'archetype' field", stdioWrap(function (done) {
-      mockFlow({
-        "package.json": JSON.stringify({
-          version: "0.1.2"
-        }),
-        "init.js": "module.exports = " + JSON.stringify({
-          prompts: {
-            name: { message: "a name" }
-          }
-        }) + ";",
-        "init": {
-          "{{name}}.txt": "A <%= _.capitalize(name) %>.",
-          "package.json": JSON.stringify({
-            dependencies: {
-              "mock-archetype":
-                "<%= archetype.package.version ? '^' + archetype.package.version : '*' %>"
-            }
-          }, null, 2)
-        }
-      });
-
-      var prompts = "--prompts='" + JSON.stringify({
-        name: "chester",
-        destination: "dest"
-      }) + "'";
-
-      init({ argv: ["node", SCRIPT, "archetype", prompts] }, function (err) {
-        if (err) { return void done(err); }
-
-        expect(base.fileRead("dest/chester.txt")).to.contain("A Chester.");
-        expect(base.fileRead("dest/package.json")).to.contain("\"mock-archetype\": \"^0.1.2\"");
-
-        done();
-      });
-    }));
   });
 
 });
