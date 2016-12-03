@@ -15,6 +15,13 @@ var run = module.exports = function (opts, callback) {
         // Directory containing templates
         _templatesDir: function (data, cb) { cb(null, "init"); },
 
+        // TODO HERE!!!
+        // // Custom fields
+        // archetype: function (data, cb) {
+        //   console.log("TODO HERE!!!", data._extractedModulePath);
+        //   cb();
+        // },
+
         // Legacy names before underscored lib naming.
         // **Note**: Values from `lib/prompts.DEFAULTS` are resolved _before_
         // these by the prompts logic.

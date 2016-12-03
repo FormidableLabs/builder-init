@@ -17,7 +17,7 @@ var addDefaults = base.addPromptDefaults.bind(base);
  */
 var promptsWithErr = function (init, assertFn) {
   return function (cb) {
-    prompts(init, function (err) {
+    prompts({ init: init }, function (err) {
       assertFn(err);
       cb();
     });
@@ -41,7 +41,7 @@ var promptsWithData = function (init, setupFn, assertFn) {
 
   return function (cb) {
     setupFn();
-    prompts(init, function (err, data) {
+    prompts({ init: init }, function (err, data) {
       if (err) { return void cb(err); }
       assertFn(data);
       cb();
