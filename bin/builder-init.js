@@ -37,6 +37,7 @@ var readJson = function (filePath, callback) {
   });
 };
 
+// Runner
 var run = module.exports = function (opts, callback) {
   return init(extend({
     script: "builder-init",
@@ -69,6 +70,7 @@ var run = module.exports = function (opts, callback) {
   }, opts), callback);
 };
 
+// Script
 if (require.main === module) {
   run(null, function (err) {
     // TODO: REAL LOGGING
