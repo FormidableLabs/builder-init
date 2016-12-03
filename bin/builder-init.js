@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 "use strict";
 
+// TODO: Remove vendor deps if possible (???)
 var _ = require("lodash");
+var async = require("async");
+var fs = require("fs-extra");
+
+var path = require("path");
 var init = require("../lib/init");
 var pkg = require("../package.json");
 
@@ -15,12 +20,27 @@ var run = module.exports = function (opts, callback) {
         // Directory containing templates
         _templatesDir: function (data, cb) { cb(null, "init"); },
 
-        // TODO HERE!!!
-        // // Custom fields
-        // archetype: function (data, cb) {
-        //   console.log("TODO HERE!!!", data._extractedModulePath);
-        //   cb();
-        // },
+        // Custom fields
+        archetype: function (data, cb) {
+          var extractedPath = data._extractedModulePath;
+          async.auto({
+            package: function (extractCb) {
+              var pkgPath = path.resolve(extractedPath, "package.json");
+              fs.readJson(pkgPath, function (err, pkgData) {
+                if (err && err.code === "ENOENT") { return void extractCb(null, {}); }
+                extractCb(err, pkgData);
+              });
+            },
+
+            devPackage: function (extractCb) {
+              var pkgPath = path.resolve(extractedPath, "dev/package.json");
+              fs.readJson(pkgPath, function (err, pkgData) {
+                if (err && err.code === "ENOENT") { return void extractCb(null, {}); }
+                extractCb(err, pkgData);
+              });
+            }
+          }, cb);
+        },
 
         // Legacy names before underscored lib naming.
         // **Note**: Values from `lib/prompts.DEFAULTS` are resolved _before_
