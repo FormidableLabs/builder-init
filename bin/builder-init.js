@@ -22,6 +22,7 @@ var run = module.exports = function (opts, callback) {
 
         // Custom fields
         archetype: function (data, cb) {
+          // TODO: Document `_extractedModulePath` in extracted project.
           var extractedPath = data._extractedModulePath;
           async.auto({
             package: function (extractCb) {
