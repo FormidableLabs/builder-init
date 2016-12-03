@@ -18,9 +18,8 @@ var extend = function (base, obj) {
 var readJson = function (filePath, callback) {
   fs.readFile(filePath, function (err, data) {
     if (err) {
-      if (err.code === "ENOENT") { return void callback(null, {}); }
-
-      return void callback(err);
+      // Allow "not found" as empty data.
+      return void callback(err.code !== "ENOENT" ? err : null, {});
     }
 
     var json;
