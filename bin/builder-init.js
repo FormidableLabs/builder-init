@@ -2,16 +2,43 @@
 "use strict";
 
 // TODO: Remove vendor deps if possible (???)
-var _ = require("lodash");
 var async = require("async");
-var fs = require("fs-extra");
 
+var fs = require("fs");
 var path = require("path");
+
 var init = require("../lib/init");
 var pkg = require("../package.json");
 
+// Helpers
+var extend = function (base, obj) {
+  return Object.keys(obj).reduce(function (memo, key) {
+    memo[key] = obj[key];
+    return memo;
+  }, base);
+};
+
+var readJson = function (filePath, callback) {
+  fs.readFile(filePath, function (err, data) {
+    if (err) {
+      if (err.code === "ENOENT") { return void callback(null, {}); }
+
+      return void callback(err);
+    }
+
+    var json;
+    try {
+      json = JSON.parse(data);
+    } catch (jsonErr) {
+      return void callback(jsonErr);
+    }
+
+    callback(null, json);
+  });
+};
+
 var run = module.exports = function (opts, callback) {
-  return init(_.merge({
+  return init(extend({
     script: "builder-init",
     version: pkg.version,
     initFile: "init.js",
@@ -25,21 +52,8 @@ var run = module.exports = function (opts, callback) {
           // TODO: Document `_extractedModulePath` in extracted project.
           var extractedPath = data._extractedModulePath;
           async.auto({
-            package: function (extractCb) {
-              var pkgPath = path.resolve(extractedPath, "package.json");
-              fs.readJson(pkgPath, function (err, pkgData) {
-                if (err && err.code === "ENOENT") { return void extractCb(null, {}); }
-                extractCb(err, pkgData);
-              });
-            },
-
-            devPackage: function (extractCb) {
-              var pkgPath = path.resolve(extractedPath, "dev/package.json");
-              fs.readJson(pkgPath, function (err, pkgData) {
-                if (err && err.code === "ENOENT") { return void extractCb(null, {}); }
-                extractCb(err, pkgData);
-              });
-            }
+            package: readJson.bind(null, path.resolve(extractedPath, "package.json")),
+            devPackage: readJson.bind(null, path.resolve(extractedPath, "dev/package.json"))
           }, cb);
         },
 
