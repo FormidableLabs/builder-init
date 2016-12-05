@@ -1,6 +1,11 @@
 History
 =======
 
+## 0.3.1
+
+* Refactor so `lib/` is agnostic template engine vs. `bin/` remaining `builder`
+  specific.
+
 ## 0.3.0
 
 * Add special `_templatesDir` prompt for specifying alternate templates
