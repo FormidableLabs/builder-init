@@ -4,7 +4,7 @@
 var fs = require("fs");
 var path = require("path");
 
-var init = require("../lib/init");
+var init = require("denim").init;
 var pkg = require("../package.json");
 
 // Helpers

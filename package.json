@@ -16,7 +16,7 @@
     "builder-init": "bin/builder-init.js"
   },
   "scripts": {
-    "builder:lint-server": "eslint --color lib bin",
+    "builder:lint-server": "eslint --color bin",
     "builder:lint-server-test": "eslint --color 'test/server/*.js' test/server/spec",
     "builder:lint": "npm run builder:lint-server && npm run builder:lint-server-test",
     "builder:test": "mocha --opts test/server/mocha.opts test/server/spec",
@@ -26,17 +26,7 @@
     "builder:build": "doctoc --notitle README.md"
   },
   "dependencies": {
-    "async": "^2.1.4",
-    "chalk": "^1.1.1",
-    "file-type": "^3.7.0",
-    "fs-extra": "^0.30.0",
-    "gitignore-parser": "0.0.2",
-    "inquirer": "^0.11.1",
-    "isbinaryfile": "^3.0.0",
-    "lodash": "^4.17.2",
-    "nopt": "^3.0.6",
-    "tar": "^2.2.1",
-    "temp": "^0.8.3"
+    "denim": "^0.0.3"
   },
   "devDependencies": {
     "chai": "^3.4.1",
