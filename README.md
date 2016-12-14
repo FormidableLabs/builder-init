@@ -48,6 +48,8 @@ from scratch, so you have to start somewhere...
 
 `builder-init` can initialize any package that `npm` can
 [install](https://docs.npmjs.com/cli/install), including npm, GitHub, file, etc.
+It uses the [denim][] template engine with some customizations specifically for
+`builder` projects.
 
 Invocation:
 
@@ -294,7 +296,7 @@ derived: {
 
 ### Special Data and Scenarios
 
-#### `.npmignore`, `.gitignore`
+#### `.npmignore`, `.gitignore`, etc.
 
 **The Problem**
 
@@ -564,6 +566,7 @@ See our above section on [Automating Prompts](#automating-prompts) for links
 and other setup information.
 
 [builder]: https://github.com/FormidableLabs/builder
+[denim]: https://github.com/FormidableLabs/denim
 [inquirer]: https://github.com/SBoudrias/Inquirer.js
 [inq-questions]: https://github.com/SBoudrias/Inquirer.js#question
 [trav_img]: https://api.travis-ci.org/FormidableLabs/builder-init.svg
