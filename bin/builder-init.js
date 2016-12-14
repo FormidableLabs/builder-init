@@ -9,7 +9,7 @@ var pkg = require("../package.json");
 
 // Helpers
 var extend = function (base, obj) {
-  return Object.keys(obj).reduce(function (memo, key) {
+  return Object.keys(obj || {}).reduce(function (memo, key) {
     memo[key] = obj[key];
     return memo;
   }, base);

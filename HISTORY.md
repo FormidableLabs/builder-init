@@ -1,7 +1,7 @@
 History
 =======
 
-## Unreleased
+## 0.4.0
 
 * Refactor to use [denim](https://github.com/FormidableLabs/denim) as template
   engine.
