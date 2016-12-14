@@ -21,12 +21,12 @@ Initialize projects from [builder][] archetypes.
     - [User Prompts](#user-prompts)
     - [Derived Data](#derived-data)
   - [Special Data and Scenarios](#special-data-and-scenarios)
-    - [`.npmignore`, `.gitignore`](#npmignore-gitignore)
+    - [`.npmignore`, `.gitignore`, etc.](#npmignore-gitignore-etc)
     - [`<archetype>/package.json`, `<archetype>/dev/package.json`](#archetypepackagejson-archetypedevpackagejson)
   - [Templates Directory Ingestion](#templates-directory-ingestion)
   - [Template Parsing](#template-parsing)
   - [File Name Parsing](#file-name-parsing)
-- [Tips, Tricks, & Notes](#tips-tricks-&-notes)
+- [Tips, Tricks, & Notes](#tips-tricks--notes)
   - [npmrc File](#npmrc-file)
 - [Archetype Development Guide](#archetype-development-guide)
 
@@ -48,6 +48,8 @@ from scratch, so you have to start somewhere...
 
 `builder-init` can initialize any package that `npm` can
 [install](https://docs.npmjs.com/cli/install), including npm, GitHub, file, etc.
+It uses the [denim][] template engine with some customizations specifically for
+`builder` projects.
 
 Invocation:
 
@@ -294,7 +296,7 @@ derived: {
 
 ### Special Data and Scenarios
 
-#### `.npmignore`, `.gitignore`
+#### `.npmignore`, `.gitignore`, etc.
 
 **The Problem**
 
@@ -564,6 +566,7 @@ See our above section on [Automating Prompts](#automating-prompts) for links
 and other setup information.
 
 [builder]: https://github.com/FormidableLabs/builder
+[denim]: https://github.com/FormidableLabs/denim
 [inquirer]: https://github.com/SBoudrias/Inquirer.js
 [inq-questions]: https://github.com/SBoudrias/Inquirer.js#question
 [trav_img]: https://api.travis-ci.org/FormidableLabs/builder-init.svg

@@ -1,6 +1,12 @@
 History
 =======
 
+## Unreleased
+
+* Refactor to use [denim](https://github.com/FormidableLabs/denim) as template
+  engine.
+  [#37](https://github.com/FormidableLabs/builder-init/issues/37)
+
 ## 0.3.1
 
 * Refactor so `lib/` is agnostic template engine vs. `bin/` remaining `builder`

@@ -7,14 +7,15 @@
  * - Mocking filesystem
  * - Stubbing stdin to return canned responses to prompts
  */
-var init = require("../../../../bin/builder-init");
-
-var base = require("../base.spec");
-
-var util = require("../../util")(base);
+// Need the base specs to properly start mocking _before_ the rest of our
+// imports.
+var base = require("denim/test/server/spec/base.spec");
+var util = require("denim/test/server/util")(base);
 var stdioWrap = util.stdioWrap;
 var mockFlow = util.mockFlow;
 
+// Our init wrapper.
+var init = require("../../../../bin/builder-init");
 var SCRIPT = "builder-init";
 
 describe("bin/builder-init", function () {
