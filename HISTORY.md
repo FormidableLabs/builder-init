@@ -1,6 +1,10 @@
 History
 =======
 
+## 0.5.0
+
+* Upgrade to `denim@0.1.0`.
+
 ## 0.4.0
 
 * Refactor to use [denim](https://github.com/FormidableLabs/denim) as template
