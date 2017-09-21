@@ -1,6 +1,10 @@
 History
 =======
 
+## 0.5.1
+
+* Various dep upgrades.
+
 ## 0.5.0
 
 * Upgrade to `denim@0.1.0`.
