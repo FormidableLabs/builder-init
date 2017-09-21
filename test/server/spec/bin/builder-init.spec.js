@@ -107,7 +107,7 @@ describe("bin/builder-init", function () {
 
       // Note: These have to match prompt fields + `destination` in order.
       stubs.prompt
-        .reset()
+        .resetHistory()
         .onCall(0).yields("different-tmpl")
         .onCall(1).yields("dest");
 
@@ -154,7 +154,7 @@ describe("bin/builder-init", function () {
 
       // Note: These have to match prompt fields + `destination` in order.
       stubs.prompt
-        .reset()
+        .resetHistory()
         .onCall(0).yields("file-name")
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");
@@ -207,7 +207,7 @@ describe("bin/builder-init", function () {
 
       // Note: These have to match prompt fields + `destination` in order.
       stubs.prompt
-        .reset()
+        .resetHistory()
         .onCall(0).yields("file-name")
         .onCall(1).yields("myCoolVar")
         .onCall(2).yields("dest");

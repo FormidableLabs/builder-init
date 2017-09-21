@@ -1,10 +1,9 @@
 language: node_js
 
 node_js:
-  - "0.10"
-  - "0.12"
-  - "4.2"
-  - "5.0"
+  - "4"
+  - "6"
+  - "8"
 
 # Use container-based Travis infrastructure.
 sudo: false
@@ -13,23 +12,14 @@ branches:
   only:
     - master
 
-env:
-  matrix:
-    - TEST_NPM_VERSION=2
-    - TEST_NPM_VERSION=3
-    - TEST_NPM_VERSION=4
-
 before_install:
   # GUI for real browsers.
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 
-  # Use the requested version of npm
-  - npm install -g "npm@$TEST_NPM_VERSION"
-
 script:
-  - npm --version
-  - npm run builder:check-ci
+  - yarn --version
+  - yarn run builder:check-ci
 
   # Manually send coverage reports to coveralls.
   # - Aggregate client results
